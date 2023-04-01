@@ -13,12 +13,12 @@ pip install ".[all]"
 
 If you want to install the package in _development mode_ use instead:
 ```shell
-pip install -e ".[all"
+pip install -e ".[all]"
 ```
 ### Installation without cloning git repository
 If you want to install this module directly, without having to clone the repository locally, you can do so by running:
 ```shell
-pip install git+https://github.com/enoriega/ASKEM-TA1-DataModel
+pip install git+https://github.com/ml4ai/ASKEM-TA1-DataModel
 ```
 
 ### Uninstallation
