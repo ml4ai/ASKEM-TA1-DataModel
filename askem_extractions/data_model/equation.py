@@ -1,10 +1,10 @@
-from pydantic import BaseModel
+from typing import Optional
 
-from askem_extractions.data_model.variable import Variable
+from pydantic import BaseModel
 
 
 class Equation(BaseModel):
     """ Represents an equation extraction """
     id: str
-    text: str
-    variable: list[Variable]
+    text: str               # Text, LaTeX or MathML representation of the formula
+    image: Optional[str]    # Optional path or url to an image depicting the formula
