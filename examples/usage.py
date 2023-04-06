@@ -6,7 +6,7 @@
 from pathlib import Path
 
 from askem_extractions.data_model import *
-from askem_extractions.importers import import_arizona
+from askem_extractions.importers import import_arizona, import_mit
 
 if __name__ == "__main__":
     # Import Arizona extractions into our data model
@@ -23,6 +23,9 @@ if __name__ == "__main__":
     assert collection == deserialized, "Deserialization didn't work"
 
     # Print the collection
-    print("Worked!!!")
-    # Uncomment to print the instance of the data model classes from AZ extractions
-    # print(deserialized)
+    print("Arizona Worked!!!")
+
+    # Import MIT extractions into our data model with the mapping file
+    import_mit(Path("temp.json"), Path("mit_extraction.json"),
+               Path("mapping.txt"))
+
