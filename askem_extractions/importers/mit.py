@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from askem_extractions.data_model import ExtractionsCollection, DKGConcept, Dataset, DataColumn, Variable, \
-    VariableStatement, VariableMetadata
+    VariableStatement, VariableMetadata, Paper
 
 
 def import_mit_and_merge(a_path: Path, m_path: Path, map_path: Path) -> ExtractionsCollection:
@@ -48,12 +48,13 @@ def import_mit_and_merge(a_path: Path, m_path: Path, map_path: Path) -> Extracti
                         # iterate through the list of data_annotations
                         for term in entry_a["data_annotations"]:
                             dataset = Dataset(
-                                name=term[3],
-                                id=term[2],
+                                name=term[0][3],
+                                id=term[0][2],
+                                metadata=term[1],
                             )
                             column = DataColumn(
-                                name=term[1],
-                                id=str(term[2])+"-"+str(term[0]),
+                                name=term[0][1],
+                                id=str(term[0][2])+"-"+str(term[0][0]),
                                 dataset=dataset,
                             )
                             vs.variable.column.append(column)
@@ -91,12 +92,13 @@ def import_mit(m_path: Path) -> ExtractionsCollection:
             # iterate through the list of data_annotations
             for term in entry_a["data_annotations"]:
                 dataset = Dataset(
-                    name=term[1],
-                    id=term[0],
+                    name=term[0][1],
+                    id=term[0][0],
+                    metadata=term[1],
                 )
                 col = DataColumn(
-                    name=term[3],
-                    id=str(term[0]) + "-" + str(term[2]),
+                    name=term[0][3],
+                    id=str(term[0][0]) + "-" + str(term[0][2]),
                     dataset=dataset,
                 )
                 columns.append(col)
@@ -109,12 +111,19 @@ def import_mit(m_path: Path) -> ExtractionsCollection:
                 )
                 metadata.append(md)
 
+        paper = Paper(
+            id=entry_a["title"],
+            file_directory=entry_a["url"],
+            doi=entry_a["doi"],
+        )
+
         variable = Variable(
             id=id,
             name=name,
             metadata=metadata,
             dkg_groundings=dkg_groundings,
             column=columns,
+            paper=paper,
         )
         variable_statement = VariableStatement(
             id=id,
