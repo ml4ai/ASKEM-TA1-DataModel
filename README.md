@@ -52,3 +52,9 @@ The model loaded from disk will be equivalent to the one imported from the perfo
 # Both collections should be equal. Since we are using pydantic, it will do a deep comparison
 assert collection == deserialized, "Deserialization didn't work"
 ```
+
+## Generate JSON Schema
+To generate the json schema, we can leverage pydantic to do it automatically using the  following code snippet:
+```python
+print(ExtractionsCollection.schema_json(indent=2))
+```
