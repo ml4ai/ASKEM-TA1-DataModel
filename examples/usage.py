@@ -44,6 +44,6 @@ if __name__ == "__main__":
     #
     # Merge both data model with the mapping file
     merged = merge_collections(a_collection, m_collection,
-                               Path("mapping.txt"))
+                               Path(__file__).parent / Path("mapping.txt"))
     merged.save_json("ta1-bucky_extraction_v1.json")
 

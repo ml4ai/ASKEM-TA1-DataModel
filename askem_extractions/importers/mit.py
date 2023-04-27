@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from askem_extractions.data_model import ExtractionsCollection, DKGConcept, Dataset, DataColumn, Variable, \
-    VariableStatement, VariableMetadata
+    VariableStatement, VariableMetadata, ProvenanceInfo
 
 
 def import_mit_and_merge(a_path: Path, m_path: Path, map_path: Path) -> ExtractionsCollection:
@@ -119,6 +119,10 @@ def import_mit(m_path: Path) -> ExtractionsCollection:
         variable_statement = VariableStatement(
             id=id,
             variable=variable,
+            provenance=ProvenanceInfo(
+                method="MIT",
+                description="MIT reading pipeline v0.5"
+            )
         )
         collection.append(variable_statement)
 

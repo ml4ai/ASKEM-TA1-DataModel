@@ -9,6 +9,7 @@ from .variable import *
 from .variable_statement import *
 from .variable_statement_metadata import *
 from .extractions_collection import *
+from .provenance import ProvenanceInfo
 
 __all__ = [
     "Dataset",
@@ -22,4 +23,5 @@ __all__ = [
     "VariableStatement",
     "VariableStatementMetadata",
     "ExtractionsCollection",
+    "ProvenanceInfo",
 ]
