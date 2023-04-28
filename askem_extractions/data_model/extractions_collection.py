@@ -11,6 +11,11 @@ class ExtractionsCollection(BaseModel):
     """ Represents a collection of extractions """
     variable_statements: list[VariableStatement]
 
+    class Config:
+        schema_extra = {
+            '$id': "#/definitions/ExtractionsCollection"
+        }
+
     def save_json(self, path: Union[Path, str]):
         """ Saves the collection to a json file """
         path = Path(path)

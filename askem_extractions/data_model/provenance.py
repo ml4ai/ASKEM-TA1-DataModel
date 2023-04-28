@@ -6,3 +6,8 @@ class ProvenanceInfo(BaseModel):
 
     method: str           # Pipeline used to generate this extraction. I.e. MIT or SKEMA reading pipelines or others
     description: str      # Arbitrary value used to describe in detail the provenance field
+
+    class Config:
+        schema_extra = {
+            '$id': "#/definitions/ProvenanceInfo"
+        }
