@@ -8,3 +8,8 @@ class DKGConcept(BaseModel):
     id: str
     name: str
     score: Optional[float]
+
+    class Config:
+        schema_extra = {
+            '$id': "#/definitions/DKGConcept"
+        }

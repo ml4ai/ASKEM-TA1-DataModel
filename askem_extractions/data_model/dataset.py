@@ -7,3 +7,8 @@ class Dataset(BaseModel):
     id: str
     name: str
     metadata: Optional[str] # Any additional metadata goes as a serialized string here
+
+    class Config:
+        schema_extra = {
+            '$id': "#/definitions/Dataset"
+        }

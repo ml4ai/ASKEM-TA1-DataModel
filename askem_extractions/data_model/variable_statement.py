@@ -15,3 +15,8 @@ class VariableStatement(BaseModel):
     value: Optional[StatementValue]                 # If there is not a statement value, then this will be empty
     metadata: list[VariableStatementMetadata] = []  # Any optional metadata goes here as a one-to-many relationship
     provenance: Optional[ProvenanceInfo]
+
+    class Config:
+        schema_extra = {
+            '$id': "#/definitions/VariableStatement"
+        }

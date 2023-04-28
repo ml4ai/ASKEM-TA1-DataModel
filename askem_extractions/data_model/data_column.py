@@ -8,3 +8,9 @@ class DataColumn(BaseModel):
     id: str
     name: str
     dataset: Dataset
+
+    class Config:
+        schema_extra = {
+            '$id': "#/definitions/DataColumn"
+        }
+

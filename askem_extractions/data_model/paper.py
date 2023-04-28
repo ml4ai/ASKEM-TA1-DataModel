@@ -6,3 +6,9 @@ class Paper(BaseModel):
     id: str
     file_directory: str
     doi: str  # Consider making this an instance of a model class too
+
+    class Config:
+        schema_extra = {
+            '$id': "#/definitions/Paper"
+        }
+
