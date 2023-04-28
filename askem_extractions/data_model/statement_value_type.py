@@ -8,8 +8,3 @@ class StatementValueType(str, Enum):
     Unit = "unit"                    # Describes the units that the value may take
     UnitAndValue = "unit_and_value"  # Describes the unit AND the value that may take
     Misc = "misc"                    # Any other unaccounted statement type can use this
-
-    class Config:
-        schema_extra = {
-            '$id': "#/definitions/StatementValueType"
-        }
