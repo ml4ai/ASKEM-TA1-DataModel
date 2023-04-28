@@ -18,3 +18,8 @@ class Variable(BaseModel):
     column: list[DataColumn] = []            # Default value of empty list
     paper: Optional[Paper]
     equations: list[Equation] = []           # Optional equations to which this variable is associated
+
+    class Config:
+        schema_extra = {
+            '$id': "#/definitions/Variable"
+        }

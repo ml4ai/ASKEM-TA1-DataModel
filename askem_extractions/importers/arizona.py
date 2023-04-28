@@ -133,7 +133,11 @@ def import_arizona(path: Path) -> ExtractionsCollection:
             VariableStatement(
                 id=event_id,
                 variable=var,
-                value=statement_value
+                value=statement_value,
+                provenance=ProvenanceInfo(
+                    method="SKEMA",
+                    description="SKEMA text reading pipeline v0.5"
+                )
             )
 
         # Throw in some variable statement metadata, just for fun
