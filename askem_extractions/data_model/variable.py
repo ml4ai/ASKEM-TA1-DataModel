@@ -11,7 +11,7 @@ from askem_extractions.data_model.variable_metadata import VariableMetadata
 
 class Variable(BaseModel):
     """ Represents an extracted variable/identifier """
-    id: str
+    # id: Optional[str]
     name: str
     metadata: list[VariableMetadata] = []    # Any additional metadata goes here
     dkg_groundings: list[DKGConcept]
