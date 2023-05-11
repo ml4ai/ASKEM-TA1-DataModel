@@ -50,7 +50,7 @@ def build_statement_value(args) -> StatementValue:
     for key, val in args.items():
         if key not in {"context", 'variable'}:
             val = val[0]
-            grounding = get_dkg_groundings(val)
+            grounding = [g for g in get_dkg_groundings(val) if g.score >= 0.75]
             value = val['text']
             if key == "description":
                 tp = StatementValueType.Description
@@ -96,9 +96,21 @@ def get_scenario_context(block) -> list[VariableStatementMetadata]:
     return ret
 
 
+def get_mention_location(mention):
+    attachments = mention['attachments']
+
+    for a in attachments:
+        if type(a) == dict:
+            if a.get("attType", None) == "MentionLocation":
+                return a
+
+
 def import_arizona(path: Path) -> ExtractionsCollection:
     with path.open() as f:
         data = json.load(f)
+        # If this contains docs plus mentions, keep only the mentions
+        if type(data) == dict and 'mentions' in data:
+            data = data['mentions']
 
     # Filter out the un necessary data
     events = [d for d in data if d["type"] != "TextBoundMention"]
@@ -107,54 +119,70 @@ def import_arizona(path: Path) -> ExtractionsCollection:
     # Make each event a variable statement type
     for e in events:
         arguments = e['arguments']
-        # Get the unique extraction id for the current event
-        event_id = e['id']
-        paper = get_paper(e)
+        if 'variable' in arguments:
+            # Get the unique extraction id for the current event
+            event_id = e['id']
+            paper = get_paper(e)
 
-        # Create the variable instance for this extraction
-        var_data = arguments['variable'][0]
-        var_groundings = get_dkg_groundings(var_data)  # Fetch the DKG groundings
+            # Create the variable instance for this extraction
+            var_data = arguments['variable'][0]
+            var_groundings = [g for g in get_dkg_groundings(var_data) if g.score >= 0.75]  # Fetch the DKG groundings
 
-        # Create the data model instance of the variable
-        var = \
-            Variable(
-                id=var_data['text'],
-                name=var_data['text'],
-                dkg_groundings=var_groundings,
-                paper=paper
-            )
-
-        # Create the statement value instance.
-        # Will be a little involved in the case of Arizona's output, so, we will hide the logic in a helper function
-        statement_value = build_statement_value(arguments)
-
-        # Put it together as a VariableStatement instance
-        var_statement = \
-            VariableStatement(
-                id=event_id,
-                variable=var,
-                value=statement_value,
-                provenance=ProvenanceInfo(
-                    method="SKEMA",
-                    description="SKEMA text reading pipeline v0.5"
+            # Create the data model instance of the variable
+            var = \
+                Variable(
+                    # id=var_data['text'],
+                    name=var_data['text'],
+                    dkg_groundings=var_groundings,
+                    paper=paper
                 )
-            )
 
-        # Throw in some variable statement metadata, just for fun
-        one_metadata = \
-            VariableStatementMetadata(
-                # Will include all the span of the extraction, including variable, statement value and context (an
-                # arizona specific construct)
-                type="text_span",
-                value=e['text']
-            )
-        var_statement.metadata.append(one_metadata)
+            # Create the statement value instance.
+            # Will be a little involved in the case of Arizona's output, so, we will hide the logic in a helper function
+            statement_value = build_statement_value(arguments)
 
-        # Throw in more metadata, this time for work: Will add scenario context as metadata elements
-        scenario_context_metadata = get_scenario_context(e)
-        var_statement.metadata.extend(scenario_context_metadata)
+            # Put it together as a VariableStatement instance
+            var_statement = \
+                VariableStatement(
+                    id=event_id,
+                    variable=var,
+                    value=statement_value,
+                    provenance=ProvenanceInfo(
+                        method="SKEMA",
+                        description="SKEMA text reading pipeline v0.5"
+                    )
+                )
 
-        # Add it to the list
-        collection.append(var_statement)
+            # Throw in some variable statement metadata, just for fun
+            one_metadata = \
+                VariableStatementMetadata(
+                    # Will include all the span of the extraction, including variable, statement value and context (an
+                    # arizona specific construct)
+                    type="text_span",
+                    value=e['text']
+                )
+            # Cosmos doc location where this event ocurred
+            cs_att = get_mention_location(e)
+            cosmos_metadata = \
+                VariableStatementMetadata(
+                    type="cosmos_location",
+                    value=','.join(
+                        [
+                            str(cs_att['pageNum'][0]),
+                            str(cs_att['blockIdx'][0]),
+                            str(e['characterStartOffset']),
+                            str(e['characterEndOffset'])
+                        ]
+                    )
+                )
+            var_statement.metadata.append(one_metadata)
+            var_statement.metadata.append(cosmos_metadata)
+
+            # Throw in more metadata, this time for work: Will add scenario context as metadata elements
+            scenario_context_metadata = get_scenario_context(e)
+            var_statement.metadata.extend(scenario_context_metadata)
+
+            # Add it to the list
+            collection.append(var_statement)
 
     return ExtractionsCollection(variable_statements=collection)
