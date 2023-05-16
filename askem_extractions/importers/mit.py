@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from askem_extractions.data_model import ExtractionsCollection, DKGConcept, Dataset, DataColumn, Variable, \
-    VariableStatement, VariableMetadata, ProvenanceInfo
+    VariableStatement, VariableMetadata, ProvenanceInfo, Paper
 
 
 def import_mit_and_merge(a_path: Path, m_path: Path, map_path: Path) -> ExtractionsCollection:
@@ -48,12 +48,13 @@ def import_mit_and_merge(a_path: Path, m_path: Path, map_path: Path) -> Extracti
                         # iterate through the list of data_annotations
                         for term in entry_a["data_annotations"]:
                             dataset = Dataset(
-                                name=term[3],
-                                id=term[2],
+                                name=term[0][3],
+                                id=term[0][2],
+                                metadata=term[1],
                             )
                             column = DataColumn(
-                                name=term[1],
-                                id=str(term[2])+"-"+str(term[0]),
+                                name=term[0][1],
+                                id=str(term[0][2])+"-"+str(term[0][0]),
                                 dataset=dataset,
                             )
                             vs.variable.column.append(column)
@@ -90,24 +91,49 @@ def import_mit(m_path: Path) -> ExtractionsCollection:
         if entry_a["data_annotations"]:
             # iterate through the list of data_annotations
             for term in entry_a["data_annotations"]:
+                print(term)
                 dataset = Dataset(
-                    name=term[1],
-                    id=term[0],
+                    name=term[0][1],
+                    id=term[0][0],
+                    metadata=term[1],
                 )
                 col = DataColumn(
-                    name=term[3],
-                    id=str(term[0]) + "-" + str(term[2]),
+                    name=term[0][3],
+                    id=str(term[0][0]) + "-" + str(term[0][2]),
                     dataset=dataset,
                 )
                 columns.append(col)
         # if text_annotations is not empty
         if text_annotations:
+            mitid = VariableMetadata(
+                type="mit_id",
+                value=id,
+            )
+            metadata.append(mitid)
+
+            mit_extracted = VariableMetadata(
+                type="mit_extracted_name",
+                value=name,
+            )
+            metadata.append(mit_extracted)
+
             for term in text_annotations:
                 md = VariableMetadata(
-                    type="text_annotation",
+                    type="mit_annotation",
                     value=term,
                 )
                 metadata.append(md)
+
+            mit_extracted = VariableMetadata(
+                type="extraction_provenance",
+                value="MIT extractor V1.0",
+            )
+            metadata.append(mit_extracted)
+        paper = Paper(
+            id=entry_a["title"],
+            file_directory=entry_a["url"],
+            doi=entry_a["doi"],
+        )
 
         variable = Variable(
             id=id,
@@ -115,6 +141,7 @@ def import_mit(m_path: Path) -> ExtractionsCollection:
             metadata=metadata,
             dkg_groundings=dkg_groundings,
             column=columns,
+            paper=paper,
         )
         variable_statement = VariableStatement(
             id=id,
@@ -152,7 +179,7 @@ def merge_collections(a_collection: ExtractionsCollection, m_collection: Extract
                 if entry_a.id == entry_a_id:
                     if entry_a.variable.metadata:
                         for md in entry_a.variable.metadata:
-                            md.type = entry_a.variable.name
+                            # md.type = entry_a.variable.name
                             vs.variable.metadata.append(md)
                     # if entry_a.variable.dkg_groundings is not empty
                     if entry_a.variable.dkg_groundings:
@@ -165,6 +192,8 @@ def merge_collections(a_collection: ExtractionsCollection, m_collection: Extract
                         for term in entry_a.variable.column:
                             vs.variable.column.append(term)
                     # if entry_a["equation_annotations"] is empty
+
+
     return ExtractionsCollection(variable_statements=a_collection.variable_statements)
 
 
