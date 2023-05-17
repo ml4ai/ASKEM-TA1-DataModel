@@ -149,7 +149,7 @@ def import_mit(m_path: Path) -> ExtractionsCollection:
             provenance=ProvenanceInfo(
                 method="MIT annotation",
                 description="text, dataset, formula annotation (chunwei@mit.edu)"
-        )
+            )
         )
         collection.append(variable_statement)
 
