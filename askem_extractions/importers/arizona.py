@@ -39,7 +39,7 @@ def get_paper(block) -> Optional[Paper]:
                 return \
                     Paper(
                         id=att['filename'],
-                        file_directory=att['filename'],
+                        name=att['filename'],
                         doi=""  # Leave the DOI empty for now
                     )
 
