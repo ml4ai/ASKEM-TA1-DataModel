@@ -1,0 +1,4 @@
+venv
+askem_extractions.egg-info
+build
+Dockerfile
