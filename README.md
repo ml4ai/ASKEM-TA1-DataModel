@@ -58,3 +58,24 @@ To generate the json schema, we can leverage pydantic to do it automatically usi
 ```python
 print(ExtractionsCollection.schema_json(indent=2))
 ```
+## Dockerization
+A docker container built using this project's docker file will normalize TA-1 participants' proprietary files and merge the product to a single output file.
+
+To build the image use the following command:
+
+```bash
+docker build -f Dockerfile -t askem_ta1_datamodel
+```
+
+A container created from this file expects to find files `/data/arizona_extractions.json`  and `/data/mit_extractions.json` and will store the output on `/data/ta1_extractions.json`.
+
+
+The simplest way to run it is by mapping a directory containing both input files to `/data`, for example, the current directory:
+```bash
+docker run -it --rm -v $(PWD):/data askem_ta1_datamodel
+```
+
+Alternatively, a finer grained control of the path names can be achieved by using the command line parameters explicitly:
+```bash
+docker run -it --rm -v $(PWD):/data askem_ta1_datamodel ./normalize_extractions.sh -a /data/arizona_extractions.json -m /data/mit_extractions.json -o /data/ta1_extractions.json
+```
