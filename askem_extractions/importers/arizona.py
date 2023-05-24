@@ -161,22 +161,25 @@ def import_arizona(path: Path) -> ExtractionsCollection:
                     type="text_span",
                     value=e['text']
                 )
-            # Cosmos doc location where this event ocurred
-            cs_att = get_mention_location(e)
-            cosmos_metadata = \
-                VariableStatementMetadata(
-                    type="cosmos_location",
-                    value=','.join(
-                        [
-                            str(cs_att['pageNum'][0]),
-                            str(cs_att['blockIdx'][0]),
-                            str(e['characterStartOffset']),
-                            str(e['characterEndOffset'])
-                        ]
-                    )
-                )
             var_statement.metadata.append(one_metadata)
-            var_statement.metadata.append(cosmos_metadata)
+
+            # Cosmos doc location where this event ocurred, if existent
+            cs_att = get_mention_location(e)
+            if cs_att:
+                cosmos_metadata = \
+                    VariableStatementMetadata(
+                        type="cosmos_location",
+                        value=','.join(
+                            [
+                                str(cs_att['pageNum'][0]),
+                                str(cs_att['blockIdx'][0]),
+                                str(e['characterStartOffset']),
+                                str(e['characterEndOffset'])
+                            ]
+                        )
+                    )
+
+                var_statement.metadata.append(cosmos_metadata)
 
             # Throw in more metadata, this time for work: Will add scenario context as metadata elements
             scenario_context_metadata = get_scenario_context(e)
