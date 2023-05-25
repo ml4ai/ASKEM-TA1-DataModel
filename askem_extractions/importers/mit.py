@@ -91,7 +91,7 @@ def import_mit(m_path: Path) -> ExtractionsCollection:
         if entry_a["data_annotations"]:
             # iterate through the list of data_annotations
             for term in entry_a["data_annotations"]:
-                print(term)
+                # print(term)
                 dataset = Dataset(
                     name=term[0][1],
                     id=term[0][0],
@@ -129,10 +129,17 @@ def import_mit(m_path: Path) -> ExtractionsCollection:
                 value="MIT extractor V1.0",
             )
             metadata.append(mit_extracted)
+        url = ""
+        doi = ""
+        id = 1
+        if "url" in entry_a.keys():
+            url = entry_a["url"],
+        if "doi" in entry_a.keys():
+            doi = entry_a["doi"]
         paper = Paper(
-            id=entry_a["title"],
-            file_directory=entry_a["url"],
-            doi=entry_a["doi"],
+            id=id,
+            name=entry_a["title"],
+            doi=doi,
         )
 
         variable = Variable(
@@ -170,9 +177,9 @@ def merge_collections(a_collection: ExtractionsCollection, m_collection: Extract
 
     for vs in a_collection.variable_statements:
         entry_b_id = vs.id
-        print(entry_b_id)
+        # print(entry_b_id)
         if entry_b_id in mapping_dict.values():
-            print("Found mapping")
+            # print("Found mapping")
             # Get the corresponding key (id from data_a) and find the entry in data_a
             entry_a_id = [k for k, v in mapping_dict.items() if v == entry_b_id][0]
             for entry_a in m_collection.variable_statements:
