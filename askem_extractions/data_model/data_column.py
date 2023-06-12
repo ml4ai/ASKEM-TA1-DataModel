@@ -1,16 +1,17 @@
 from pydantic import BaseModel
 
-from askem_extractions.data_model.dataset import Dataset
+from askem_extractions.data_model import Dataset
+from askem_extractions.data_model.identifier import ID
 
 
-class DataColumn(BaseModel):
+class DataColumnReference(BaseModel):
     """ Represents a column of a dataset """
-    id: str
+    id: ID
     name: str
     dataset: Dataset
 
     class Config:
         schema_extra = {
-            '$id': "#/definitions/DataColumn"
+            '$id': "#/definitions/DataColumnReference"
         }
 

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from askem_extractions.data_model import ExtractionsCollection, DKGConcept, Dataset, DataColumn, Variable, \
+from askem_extractions.data_model import ExtractionsCollection, DKGConcept, Dataset, DataColumnReference, Variable, \
     VariableStatement, VariableMetadata, ProvenanceInfo, Paper
 
 
@@ -52,7 +52,7 @@ def import_mit_and_merge(a_path: Path, m_path: Path, map_path: Path) -> Extracti
                                 id=term[0][2],
                                 metadata=term[1],
                             )
-                            column = DataColumn(
+                            column = DataColumnReference(
                                 name=term[0][1],
                                 id=str(term[0][2])+"-"+str(term[0][0]),
                                 dataset=dataset,
@@ -97,7 +97,7 @@ def import_mit(m_path: Path) -> ExtractionsCollection:
                     id=term[0][0],
                     metadata=term[1],
                 )
-                col = DataColumn(
+                col = DataColumnReference(
                     name=term[0][3],
                     id=str(term[0][0]) + "-" + str(term[0][2]),
                     dataset=dataset,
