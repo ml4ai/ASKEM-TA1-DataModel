@@ -1,13 +1,19 @@
 import json
+from datetime import datetime
 from pathlib import Path
 
-from askem_extractions.data_model import ExtractionsCollection, DKGConcept, Dataset, DataColumn, Variable, \
-    VariableStatement, VariableMetadata, ProvenanceInfo, Paper
+from askem_extractions.data_model import Dataset, DataColumnReference, AttributeCollection, Grounding, Provenance, \
+    DocumentReference, AnchoredExtraction, ID, Name, Description, Attribute, AttributeType
 
 
-def import_mit_and_merge(a_path: Path, m_path: Path, map_path: Path) -> ExtractionsCollection:
+def import_mit_and_merge(a_path: Path, m_path: Path, map_path: Path) -> AttributeCollection:
+    mit_provenance = Provenance(
+        method="MIT extractor V1.0",  # TODO: Chunwei, please verify this and change it as you need
+        timestamp=str(datetime.utcnow())
+    )
+
     # Extract the data from json file
-    from_json = ExtractionsCollection.from_json(a_path)
+    from_json = AttributeCollection.from_json(a_path)
 
     with open(m_path, "r") as file_a:
         data_m = json.load(file_a)
@@ -22,8 +28,11 @@ def import_mit_and_merge(a_path: Path, m_path: Path, map_path: Path) -> Extracti
         key, value = mapping.strip().split(": ")
         mapping_dict[key] = value.strip('"').strip(",")
 
-    for vs in from_json.variable_statements:
-        entry_b_id = vs.id
+    anchored_extractions = [a.payload for a in from_json]
+
+    for vs in anchored_extractions:
+
+        entry_b_id = vs.id.id
         print(entry_b_id)
         if entry_b_id in mapping_dict.values():
             print("Found mapping")
@@ -31,18 +40,21 @@ def import_mit_and_merge(a_path: Path, m_path: Path, map_path: Path) -> Extracti
             entry_a_id = [k for k, v in mapping_dict.items() if v == entry_b_id][0]
             for entry_a in data_m:
                 if entry_a["id"] == entry_a_id:
-                    vs.variable.metadata = entry_a["name"]+": "+' '.join(entry_a["text_annotations"])
+                    # vs.variable.metadata = entry_a["name"]+": "+' '.join(entry_a["text_annotations"]) # TODO find a place to repurpose this
                     # if entry_a["dkg_annotations"] is not empty
                     if entry_a["dkg_annotations"]:
                         # iterate through the list of dkg_annotations
                         for term in entry_a["dkg_annotations"]:
-                            if len(term)<2:
+                            if len(term) < 2:
                                 continue
-                            dkg = DKGConcept(
-                                name=term[1],
-                                id=term[0],
+                            dkg = Grounding(
+                                grounding_text=term[1],
+                                grounding_id=term[0],
+                                source=[],
+                                score=1.,
+                                provenance=mit_provenance
                             )
-                            vs.variable.dkg_groundings.append(dkg)
+                            vs.groundings.append(dkg)
                     # if entry_a["data_annotations"] is empty
                     if entry_a["data_annotations"]:
                         # iterate through the list of data_annotations
@@ -52,19 +64,24 @@ def import_mit_and_merge(a_path: Path, m_path: Path, map_path: Path) -> Extracti
                                 id=term[0][2],
                                 metadata=term[1],
                             )
-                            column = DataColumn(
+                            column = DataColumnReference(
                                 name=term[0][1],
-                                id=str(term[0][2])+"-"+str(term[0][0]),
+                                id=str(term[0][2]) + "-" + str(term[0][0]),
                                 dataset=dataset,
                             )
-                            vs.variable.column.append(column)
+                            vs.data_columns.append(column)
                     # if entry_a["equation_annotations"] is empty
     from_json.save_json("TA1-integration.json")
 
 
+def import_mit(m_path: Path) -> AttributeCollection:
+    extractions = []
 
-def import_mit(m_path: Path) -> ExtractionsCollection:
-    collection = []
+    mit_provenance = Provenance(
+        method="MIT extractor V1.0 - text, dataset, formula annotation (chunwei@mit.edu)",
+        # TODO: Chunwei, please verify this and change it as you need
+        timestamp=str(datetime.utcnow())
+    )
 
     with open(m_path, "r") as file_a:
         data_m = json.load(file_a)
@@ -81,9 +98,12 @@ def import_mit(m_path: Path) -> ExtractionsCollection:
             for term in entry_a["dkg_annotations"]:
                 if len(term) < 2:
                     continue
-                dkg = DKGConcept(
-                    name=term[1],
-                    id=term[0],
+                dkg = Grounding(
+                    grounding_text=term[1],
+                    grounding_id=term[0],
+                    source=list(),
+                    score=1.,
+                    provenance=mit_provenance
                 )
                 dkg_groundings.append(dkg)
         columns = []
@@ -94,76 +114,101 @@ def import_mit(m_path: Path) -> ExtractionsCollection:
                 # print(term)
                 dataset = Dataset(
                     name=term[0][1],
-                    id=term[0][0],
+                    id=ID(id=term[0][0]),
                     metadata=term[1],
                 )
-                col = DataColumn(
+                col = DataColumnReference(
                     name=term[0][3],
-                    id=str(term[0][0]) + "-" + str(term[0][2]),
+                    id=ID(id=str(term[0][0]) + "-" + str(term[0][2])),
                     dataset=dataset,
                 )
                 columns.append(col)
         # if text_annotations is not empty
-        if text_annotations:
-            mitid = VariableMetadata(
-                type="mit_id",
-                value=id,
-            )
-            metadata.append(mitid)
-
-            mit_extracted = VariableMetadata(
-                type="mit_extracted_name",
-                value=name,
-            )
-            metadata.append(mit_extracted)
-
-            for term in text_annotations:
-                md = VariableMetadata(
-                    type="mit_annotation",
-                    value=term,
-                )
-                metadata.append(md)
-
-            mit_extracted = VariableMetadata(
-                type="extraction_provenance",
-                value="MIT extractor V1.0",
-            )
-            metadata.append(mit_extracted)
+        # if text_annotations:
+        #     mitid = VariableMetadata(
+        #         type="mit_id",
+        #         value=id,
+        #     )
+        #     metadata.append(mitid)
+        #
+        #     mit_extracted = VariableMetadata(
+        #         type="mit_extracted_name",
+        #         value=name,
+        #     )
+        #     metadata.append(mit_extracted)
+        #
+        #     for term in text_annotations:
+        #         md = VariableMetadata(
+        #             type="mit_annotation",
+        #             value=term,
+        #         )
+        #         metadata.append(md)
+        #
+        #     mit_extracted = VariableMetadata(
+        #         type="extraction_provenance",
+        #         value="MIT extractor V1.0",
+        #     )
+        #     metadata.append(mit_extracted)
         url = ""
         doi = ""
-        id = 1
+        doc_ref_id = 1
         if "url" in entry_a.keys():
             url = entry_a["url"],
         if "doi" in entry_a.keys():
             doi = entry_a["doi"]
-        paper = Paper(
-            id=id,
-            name=entry_a["title"],
+        paper = DocumentReference(
+            id=ID(id=doc_ref_id),
+            source_file=entry_a["title"],
             doi=doi,
         )
 
-        variable = Variable(
-            id=id,
-            name=name,
-            metadata=metadata,
-            dkg_groundings=dkg_groundings,
-            column=columns,
-            paper=paper,
+        # variable = Variable(
+        #     id=id,
+        #     name=name,
+        #     metadata=metadata,
+        #     dkg_groundings=dkg_groundings,
+        #     column=columns,
+        #     paper=paper,
+        # )
+
+        descriptions = [Description(
+            id=ID(id=id),
+            source=d,
+            grounding=None,
+            extraction_source=None,
+            provenance=mit_provenance
+        ) for d in text_annotations]
+
+
+        anchored_extraction = AnchoredExtraction(
+            id=ID(id=id),
+            names=[Name(
+                id=ID(id=id),
+                name=name,
+                extraction_source=None,
+                document_reference=paper,
+                provenance=mit_provenance
+            )],
+            descriptions=descriptions,
+            value_specs=None,
+            groundings=dkg_groundings,
+            data_columns=columns
         )
-        variable_statement = VariableStatement(
-            id=id,
-            variable=variable,
-            provenance=ProvenanceInfo(
-                method="MIT annotation",
-                description="text, dataset, formula annotation (chunwei@mit.edu)"
-            )
-        )
-        collection.append(variable_statement)
+        extractions.append(anchored_extraction)
 
-    return ExtractionsCollection(variable_statements=collection)
+    attributes = [
+        Attribute(
+            type=AttributeType.anchored_extraction,
+            amr_element_id=None,
+            payload=e
+        ) for e in extractions
+    ]
+
+    return AttributeCollection(attributes=attributes)
 
 
-def merge_collections(a_collection: ExtractionsCollection, m_collection: ExtractionsCollection, map_path: Path) -> ExtractionsCollection:
+def merge_collections(a_collection: AttributeCollection, m_collection: AttributeCollection,
+                      map_path: Path) -> AttributeCollection:
     # Extract the data from json file
     # Load mapping file
     with open(map_path, "r") as mapping_file:
@@ -175,32 +220,35 @@ def merge_collections(a_collection: ExtractionsCollection, m_collection: Extract
         key, value = mapping.strip().split(": ")
         mapping_dict[key] = value.strip('"').strip(",")
 
-    for vs in a_collection.variable_statements:
-        entry_b_id = vs.id
+    az_anchored_extractions = [a.payload for a in a_collection.attributes]
+
+    for vs in az_anchored_extractions:
+        entry_b_id = vs.id.id
         # print(entry_b_id)
         if entry_b_id in mapping_dict.values():
             # print("Found mapping")
             # Get the corresponding key (id from data_a) and find the entry in data_a
             entry_a_id = [k for k, v in mapping_dict.items() if v == entry_b_id][0]
-            for entry_a in m_collection.variable_statements:
-                if entry_a.id == entry_a_id:
-                    if entry_a.variable.metadata:
-                        for md in entry_a.variable.metadata:
-                            # md.type = entry_a.variable.name
-                            vs.variable.metadata.append(md)
+            mit_anchored_extractions = [a.payload for a in m_collection.attributes]
+            for entry_a in mit_anchored_extractions:
+                if entry_a.id.id == entry_a_id:
+                    # TODO Figure out what to do with the metadata
+                    # if entry_a.variable.metadata:
+                    #     for md in entry_a.variable.metadata:
+                    #         # md.type = entry_a.variable.name
+                    #         vs.variable.metadata.append(md)
                     # if entry_a.variable.dkg_groundings is not empty
-                    if entry_a.variable.dkg_groundings:
+                    if entry_a.groundings:
                         # iterate through the list of dkg_annotations
-                        for term in entry_a.variable.dkg_groundings:
-                            vs.variable.dkg_groundings.append(term)
+                        for term in entry_a.groundings:
+                            vs.groundings.append(term)
                     # if entry_a.variable.column is not empty
-                    if entry_a.variable.column:
+                    if entry_a.data_columns:
                         # iterate through the list of data_annotations
-                        for term in entry_a.variable.column:
-                            vs.variable.column.append(term)
+                        for term in entry_a.data_columns:
+                            if not vs.data_columns:
+                                vs.data_columns = list()
+                            vs.data_columns.append(term)
                     # if entry_a["equation_annotations"] is empty
 
-
-    return ExtractionsCollection(variable_statements=a_collection.variable_statements)
-
-
+    return AttributeCollection(attributes=a_collection.attributes)

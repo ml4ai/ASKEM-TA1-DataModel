@@ -18,7 +18,7 @@ if __name__ == "__main__":
     a_collection.save_json("a_temp.json")
 
     # Reloads the collection from the json file
-    deserialized = ExtractionsCollection.from_json("a_temp.json")
+    deserialized = AttributeCollection.from_json("a_temp.json")
 
     # Both collections should be equal. Since we are using pydantic, it will do a deep comparison
     assert a_collection == deserialized, "Deserialization didn't work"
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     m_collection.save_json("m_temp.json")
 
     # Reloads the collection from the json file
-    deserialized = ExtractionsCollection.from_json("m_temp.json")
+    deserialized = AttributeCollection.from_json("m_temp.json")
 
     # Both collections should be equal. Since we are using pydantic, it will do a deep comparison
     assert m_collection == deserialized, "Deserialization didn't work"

@@ -1,13 +1,14 @@
 from pydantic import BaseModel
+from datetime import datetime
 
 
-class ProvenanceInfo(BaseModel):
-    """ Describes the provenance of an extraction """
-
-    method: str           # Pipeline used to generate this extraction. I.e. MIT or SKEMA reading pipelines or others
-    description: str      # Arbitrary value used to describe in detail the provenance field
+class Provenance(BaseModel):
+    """ Represents the origin of a piece of information related to the extractions """
+    method: str  # The inference method / algorithm (with version) used to derive data
+    # e.g., "MIT-extraction-v3", "SKEMA-TR-v1"
+    timestamp: datetime
 
     class Config:
         schema_extra = {
-            '$id': "#/definitions/ProvenanceInfo"
+            '$id': "#/definitions/Provenance"
         }
