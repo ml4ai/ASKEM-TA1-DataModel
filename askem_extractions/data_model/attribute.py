@@ -5,10 +5,11 @@ import pydantic
 from pydantic import BaseModel
 from enum import Enum
 
-from askem_extractions.data_model import Equation
-from askem_extractions.data_model.anchored_extraction import AnchoredExtraction
-from askem_extractions.data_model.document_collection import DocumentCollection
-from askem_extractions.data_model.function_network_reference import FNReference
+from . import Equation
+from . import AnchoredExtraction
+from . import DocumentCollection
+from . import FNReference
+from . import ScenarioContext
 
 
 class AttributeType(str, Enum):
@@ -16,6 +17,7 @@ class AttributeType(str, Enum):
     document_collection = "document_collection"
     equation = "equation"
     fn_reference = "fn_reference"
+    scenario_context = "scenario_context"
 
 
 class Attribute(BaseModel):
@@ -30,7 +32,8 @@ class Attribute(BaseModel):
     payload: Union[AnchoredExtraction,
     DocumentCollection,
     Equation,
-    FNReference]
+    FNReference,
+    ScenarioContext]
 
     class Config:
         use_enum_value = True
@@ -52,7 +55,7 @@ class AttributeCollection(BaseModel):
         """ Saves the collection to a json file """
         path = Path(path)
         with path.open('w') as f:
-            f.write(self.json())
+            f.write(self.json(indent=2))
 
     @classmethod
     def from_json(cls, path: Union[Path, str]):

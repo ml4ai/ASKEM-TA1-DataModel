@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional
 import uuid
 
-from askem_extractions.data_model import *
+from ..data_model import *
 
 
 def get_dkg_groundings(block) -> list[Grounding]:
@@ -178,31 +178,43 @@ def build_anchored_extraction(event) -> (AnchoredExtraction, DocumentReference):
                 document_reference)
 
 
-# def get_scenario_context(block) -> list[VariableStatementMetadata]:
-#     """ Helper function to return the scenario context as metadata for the variable statement """
-#     ret = []
-#     attachments = block.get('attachments', [])
-#     for att in attachments:
-#         if type(att) == dict:
-#             if 'scenarioLocation' in att:
-#                 for location in att['scenarioLocation']:
-#                     ret.append(
-#                         # Create the data model instance of the DKG element and its grounding score
-#                         VariableStatementMetadata(
-#                             type="scenario_location",
-#                             value=location
-#                         )
-#                     )
-#             elif 'scenarioTime' in att:
-#                 for time in att['scenarioTime']:
-#                     ret.append(
-#                         # Create the data model instance of the DKG element and its grounding score
-#                         VariableStatementMetadata(
-#                             type="scenario_time",
-#                             value=time
-#                         )
-#                     )
-#     return ret
+def get_scenario_context(block) -> list[ScenarioContext]:
+    """ Helper function to return the scenario context as metadata for the variable statement """
+    ret = []
+    attachments = block.get('attachments', [])
+    for att in attachments:
+        if type(att) == dict:
+            if 'scenarioLocation' in att:
+                for location in att['scenarioLocation']:
+                    ret.append(
+                        ScenarioContext(
+                            id=ID(id=hash("location-"+location)),
+                            location = LocationContext(
+                                location=location,
+                                provenance=Provenance(
+                                    method="SKEMA-TR-Context-1.0",
+                                    timestamp=str(datetime.utcnow())
+                                ),
+                                grounding=None
+                            )
+                        )
+                    )
+            elif 'scenarioTime' in att:
+                for time in att['scenarioTime']:
+                    ret.append(
+                        ScenarioContext(
+                            id = ID(id=hash("temporal-time")),
+                            time=TemporalContext(
+                                datetime=time,
+                                provenance=Provenance(
+                                    method="SKEMA-TR-Context-1.0",
+                                    timestamp=str(datetime.utcnow())
+                                ),
+                                grounding=None
+                            )
+                        )
+                    )
+    return ret
 
 
 def get_mention_location(mention):
@@ -226,6 +238,7 @@ def import_arizona(path: Path) -> AttributeCollection:
 
     extractions = []
     documents = []
+    contexts = []
     seen_documents = set()
     # Make each event a variable statement type
     for e in events:
@@ -244,13 +257,15 @@ def import_arizona(path: Path) -> AttributeCollection:
         #         value=e['text']
         #     )
         # var_statement.metadata.append(one_metadata)
-        #
-        # # Throw in more metadata, this time for work: Will add scenario context as metadata elements
-        # scenario_context_metadata = get_scenario_context(e)
-        # var_statement.metadata.extend(scenario_context_metadata)
+
+        # Will add scenario context as metadata elements
+        scenario_contexts = get_scenario_context(e)
+        for sc in scenario_contexts:
+            sc.extractions.append(anchored_extraction.id)
 
         # Add it to the list
         extractions.append(anchored_extraction)
+        contexts.extend(scenario_contexts)
 
     attributes = [
         Attribute(
@@ -267,6 +282,14 @@ def import_arizona(path: Path) -> AttributeCollection:
             payload=DocumentCollection(documents=documents)
         )
 
-    collection = AttributeCollection(attributes=attributes + [doc_collection])
+    contexts = [
+        Attribute(
+            type=AttributeType.scenario_context,
+            amr_element_id=None,
+            payload=c
+        ) for c in contexts
+    ]
+
+    collection = AttributeCollection(attributes=attributes + contexts + [doc_collection])
 
     return collection

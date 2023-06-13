@@ -1,14 +1,23 @@
-
 from itertools import tee, filterfalse
+from typing import Iterable
 
-def partition(pred, iterable):
-    "Use a predicate to partition entries into false entries and true entries"
-    # partition(is_odd, range(10)) --> 0 2 4 6 8   and  1 3 5 7 9
-    t1, t2 = tee(iterable)
-    return list(filter(pred, t2)), list(filterfalse(pred, t1))
+from ..data_model import Attribute, AttributeType, AttributeCollection
+
+
+def categorize_attributes(iterable: AttributeCollection):
+    extractions, documents, context = [], [], []
+    for i in iterable.attributes:
+        if i.type == AttributeType.anchored_extraction:
+            extractions.append(i)
+        elif i.type == AttributeType.document_collection:
+            documents.append(i)
+        elif i.type == AttributeType.scenario_context:
+            context.append(i)
+
+    return extractions, documents, context
+
 
 from .arizona import import_arizona
 from .mit import import_mit
 
-
-__all__ = ["import_arizona", "import_mit", "partition"]
+__all__ = ["import_arizona", "import_mit", "categorize_attributes"]

@@ -5,7 +5,7 @@ from pathlib import Path
 from askem_extractions.data_model import Dataset, DataColumnReference, AttributeCollection, Grounding, Provenance, \
     DocumentReference, AnchoredExtraction, ID, Name, Description, Attribute, AttributeType, TextExtraction, \
     DocumentCollection
-from . import partition
+from . import categorize_attributes
 
 
 def import_mit_and_merge(a_path: Path, m_path: Path, map_path: Path) -> AttributeCollection:
@@ -240,8 +240,8 @@ def merge_collections(a_collection: AttributeCollection, m_collection: Attribute
         key, value = mapping.strip().split(": ")
         mapping_dict[key] = value.strip('"').strip(",")
 
-    az_anchored_extractions, az_docs = partition(lambda a: isinstance(a.payload, AnchoredExtraction), (a for a in a_collection.attributes))
-    mit_anchored_extractions, mit_docs = partition(lambda a: isinstance(a.payload, AnchoredExtraction), (a for a in m_collection.attributes))
+    az_anchored_extractions, az_docs, az_context = categorize_attributes(a_collection)
+    mit_anchored_extractions, mit_docs, _ = categorize_attributes(m_collection)
 
     az_docs = az_docs[0]
     mit_docs = mit_docs[0]
@@ -257,11 +257,8 @@ def merge_collections(a_collection: AttributeCollection, m_collection: Attribute
             for entry_a in (a.payload for a in mit_anchored_extractions):
                 if entry_a.id.id == entry_a_id:
                     # TODO Figure out what to do with the metadata
-                    # if entry_a.variable.metadata:
-                    #     for md in entry_a.variable.metadata:
-                    #         # md.type = entry_a.variable.name
-                    #         vs.variable.metadata.append(md)
-                    # if entry_a.variable.dkg_groundings is not empty
+                    for name in entry_a.names:
+                        vs.names.append(name)
                     if entry_a.descriptions:
                         for d in entry_a.descriptions:
                             vs.descriptions.append(d)
@@ -280,4 +277,4 @@ def merge_collections(a_collection: AttributeCollection, m_collection: Attribute
 
     merged_docs = Attribute(type=AttributeType.document_collection, payload=DocumentCollection(documents=az_docs.payload.documents + mit_docs.payload.documents))
 
-    return AttributeCollection(attributes=az_anchored_extractions + [merged_docs])
+    return AttributeCollection(attributes=az_anchored_extractions + [merged_docs] + az_context)
