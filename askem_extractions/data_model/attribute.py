@@ -1,5 +1,7 @@
+from pathlib import Path
 from typing import Optional, Union
 
+import pydantic
 from pydantic import BaseModel
 from enum import Enum
 
@@ -24,14 +26,35 @@ class Attribute(BaseModel):
 
     type: AttributeType
     amr_element_id: Optional[str]  # When present, this means the attribute is associated with an AMR element,
-                                   # and the str represents the AMR element id
+    # and the str represents the AMR element id
     payload: Union[AnchoredExtraction,
-                   DocumentCollection,
-                   Equation,
-                   FNReference]
+    DocumentCollection,
+    Equation,
+    FNReference]
 
     class Config:
         use_enum_value = True
         schema_extra = {
             '$id': "#/definitions/Attribute"
         }
+
+
+class AttributeCollection(BaseModel):
+    """ Represents a collection of attributes """
+    attributes: list[Attribute]
+
+    class Config:
+        schema_extra = {
+            '$id': "#/definitions/AttributeCollection"
+        }
+
+    def save_json(self, path: Union[Path, str]):
+        """ Saves the collection to a json file """
+        path = Path(path)
+        with path.open('w') as f:
+            f.write(self.json())
+
+    @classmethod
+    def from_json(cls, path: Union[Path, str]):
+        """ Restores a collection from a json file """
+        return pydantic.parse_file_as(path=str(path), type_=cls)

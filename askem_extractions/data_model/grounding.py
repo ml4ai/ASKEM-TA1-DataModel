@@ -29,6 +29,7 @@ class Grounding(BaseModel):
         member of: ValueSpec.unit.
     """
 
+    grounding_text: str # DKG text of the candidate
     grounding_id: str  # DKG grounding identifier
     source: List[ID]   # See the Grounding general comment explaining the different types of elements that may be
                        # grounded and how the source is determined based on the type.

@@ -1,11 +1,12 @@
 import json
 from pathlib import Path
 from typing import Optional
+import uuid
 
 from askem_extractions.data_model import *
 
 
-def get_dkg_groundings(block) -> list[DKGConcept]:
+def get_dkg_groundings(block) -> list[Grounding]:
     """
     Helper function to create DKGConcept instances from arizona extractions.
     This is specific to any input data format (i.e. Arizona, MIT, etc)
@@ -19,17 +20,22 @@ def get_dkg_groundings(block) -> list[DKGConcept]:
                 name, dkg_id, score = [dkg[0][k] for k in ['name', 'id', 'score']]
                 ret.append(
                     # Create the data model instance of the DKG element and its grounding score
-                    DKGConcept(
-                        name=name,
-                        id=dkg_id,
-                        score=score
+                    Grounding(
+                        source=[],  # TODO: Fix here
+                        grounding_text=name,
+                        grounding_id=dkg_id,
+                        score=score,
+                        provenance=Provenance(
+                            method="SKEMA-TR-Embedding",
+                            timestamp=str(datetime.utcnow())
+                        )
                     )
                 )
 
     return ret
 
 
-def get_paper(block) -> Optional[Paper]:
+def get_document_reference(block) -> Optional[DocumentReference]:
     """ Helper function to extract the paper name from which this variable came from """
 
     attachments = block.get('attachments', [])
@@ -37,63 +43,160 @@ def get_paper(block) -> Optional[Paper]:
         if type(att) == dict:
             if 'filename' in att:
                 return \
-                    Paper(
-                        id=att['filename'],
-                        name=att['filename'],
+                    DocumentReference(
+                        id=ID(id=att['filename']),  # TODO update this with the correct field
+                        source_file=att['filename'],
                         doi=""  # Leave the DOI empty for now
                     )
 
 
-def build_statement_value(args) -> StatementValue:
+def build_anchored_extraction(event) -> AnchoredExtraction:
     """ Helper function to extract the statement value """
-    value, units, tp, grounding = None, None, None, None
-    for key, val in args.items():
-        if key not in {"context", 'variable'}:
-            val = val[0]
-            grounding = [g for g in get_dkg_groundings(val) if g.score >= 0.75]
-            value = val['text']
-            if key == "description":
-                tp = StatementValueType.Description
-            elif key == "value":
-                tp = StatementValueType.Value
-            elif key == "unit":
-                tp = StatementValueType.UnitAndValue
-            else:
-                tp = StatementValueType.Misc
 
-    return \
-        StatementValue(
-            value=f"{value}, {units}" if tp == StatementValueType.UnitAndValue else value,
-            type=tp,
-            get_dkg_groundings=grounding,
-        )
+    event_id = event['id']
+    arguments = event['arguments']
 
+    event_provenance = Provenance(
+        method="Skema TR Pipeline rules",
+        timestamp=str(datetime.utcnow())
+    )
 
-def get_scenario_context(block) -> list[VariableStatementMetadata]:
-    """ Helper function to return the scenario context as metadata for the variable statement """
-    ret = []
-    attachments = block.get('attachments', [])
-    for att in attachments:
-        if type(att) == dict:
-            if 'scenarioLocation' in att:
-                for location in att['scenarioLocation']:
-                    ret.append(
-                        # Create the data model instance of the DKG element and its grounding score
-                        VariableStatementMetadata(
-                            type="scenario_location",
-                            value=location
+    if 'variable' in arguments:
+        # Get the unique extraction id for the current event
+
+        paper = get_document_reference(event)
+
+        # Create the variable instance for this extraction
+        var_data = arguments['variable'][0]
+        var_groundings = [g for g in get_dkg_groundings(var_data) if g.score >= 0.75]  # Fetch the DKG groundings
+
+        # Cosmos doc location where this event occurred, if existent
+        var_cs_att = get_mention_location(var_data)
+        if var_cs_att:
+            var_text_extraction = \
+                TextExtraction(
+                    page=var_cs_att['pageNum'][0],
+                    block=var_cs_att['blockIdx'][0],
+                    char_start=var_data['characterStartOffset'],
+                    char_end=var_data['characterEndOffset']
+                )
+        else:
+            var_text_extraction = \
+                TextExtraction(
+                    page=0,
+                    block=0,
+                    char_start=var_data['characterStartOffset'],
+                    char_end=var_data['characterEndOffset']
+                )
+
+        # Create the statement value instance.
+        # Will be a little involved in the case of Arizona's output, so, we will hide the logic in a helper function
+
+        descriptions, value_specs, data_columns = [], [], []
+
+        for key, val in arguments.items():
+            if key not in {"context", 'variable'}:
+                val = val[0]
+
+                # Cosmos doc location where this event occurred, if existent
+                val_cs_att = get_mention_location(val)
+                if val_cs_att:
+                    val_text_extraction = \
+                        TextExtraction(
+                            page=val_cs_att['pageNum'][0],
+                            block=val_cs_att['blockIdx'][0],
+                            char_start=val['characterStartOffset'],
+                            char_end=val['characterEndOffset']
                         )
-                    )
-            elif 'scenarioTime' in att:
-                for time in att['scenarioTime']:
-                    ret.append(
-                        # Create the data model instance of the DKG element and its grounding score
-                        VariableStatementMetadata(
-                            type="scenario_time",
-                            value=time
+                else:
+                    val_text_extraction = \
+                        TextExtraction(
+                            page=0,
+                            block=0,
+                            char_start=val['characterStartOffset'],
+                            char_end=val['characterEndOffset']
                         )
+
+                val_groundings = [g for g in get_dkg_groundings(val) if g.score >= 0.75]
+
+                value = val['text']
+                if key == "description":
+                    d = Description(
+                        id=ID(id=val['id']),
+                        source=value,
+                        grounding=val_groundings,
+                        extraction_source=val_text_extraction,
+                        provenance=event_provenance
                     )
-    return ret
+                    descriptions.append(d)
+                elif key == "value":
+                    vs = ValueSpec(
+                        id=ID(id=val['id']),
+                        value=Value(
+                            source=value,
+                            grounding=val_groundings,
+                            extraction_source=val_text_extraction
+                        ),
+                        units=None,
+                        type=None,
+                        bounds=None,
+                        provenance=event_provenance
+                    )
+                    value_specs.append(vs)
+                elif key == "unit":
+                    vs = ValueSpec(
+                        id=ID(id=-val['id']),
+                        value=Value(
+                            source=value,
+                            grounding=val_groundings,
+                            extraction_source=TextExtraction
+                        ),
+                        units=None,
+                        type=None,
+                        bounds=None,
+                        provenance=event_provenance
+                    )
+                    value_specs.append(vs)
+
+        return \
+            AnchoredExtraction(
+                id=ID(id=event_id),
+                names=[Name(
+                    id=ID(id=var_data['id']),
+                    name=var_data['text'],
+                    extraction_source=var_text_extraction,
+                    document_reference=paper,
+                    provenance=event_provenance
+                )],
+                groundings=var_groundings
+            )
+
+
+# def get_scenario_context(block) -> list[VariableStatementMetadata]:
+#     """ Helper function to return the scenario context as metadata for the variable statement """
+#     ret = []
+#     attachments = block.get('attachments', [])
+#     for att in attachments:
+#         if type(att) == dict:
+#             if 'scenarioLocation' in att:
+#                 for location in att['scenarioLocation']:
+#                     ret.append(
+#                         # Create the data model instance of the DKG element and its grounding score
+#                         VariableStatementMetadata(
+#                             type="scenario_location",
+#                             value=location
+#                         )
+#                     )
+#             elif 'scenarioTime' in att:
+#                 for time in att['scenarioTime']:
+#                     ret.append(
+#                         # Create the data model instance of the DKG element and its grounding score
+#                         VariableStatementMetadata(
+#                             type="scenario_time",
+#                             value=time
+#                         )
+#                     )
+#     return ret
 
 
 def get_mention_location(mention):
@@ -105,7 +208,7 @@ def get_mention_location(mention):
                 return a
 
 
-def import_arizona(path: Path) -> ExtractionsCollection:
+def import_arizona(path: Path) -> AttributeCollection:
     with path.open() as f:
         data = json.load(f)
         # If this contains docs plus mentions, keep only the mentions
@@ -115,77 +218,36 @@ def import_arizona(path: Path) -> ExtractionsCollection:
     # Filter out the un necessary data
     events = [d for d in data if d["type"] != "TextBoundMention"]
 
-    collection = []
+    extractions = []
     # Make each event a variable statement type
     for e in events:
-        arguments = e['arguments']
-        if 'variable' in arguments:
-            # Get the unique extraction id for the current event
-            event_id = e['id']
-            paper = get_paper(e)
+        anchored_extraction = build_anchored_extraction(e)
 
-            # Create the variable instance for this extraction
-            var_data = arguments['variable'][0]
-            var_groundings = [g for g in get_dkg_groundings(var_data) if g.score >= 0.75]  # Fetch the DKG groundings
+        # Throw in some variable statement metadata, just for fun
+        # one_metadata = \
+        #     VariableStatementMetadata(
+        #         # Will include all the span of the extraction, including variable, statement value and context (an
+        #         # arizona specific construct)
+        #         type="text_span",
+        #         value=e['text']
+        #     )
+        # var_statement.metadata.append(one_metadata)
+        #
+        # # Throw in more metadata, this time for work: Will add scenario context as metadata elements
+        # scenario_context_metadata = get_scenario_context(e)
+        # var_statement.metadata.extend(scenario_context_metadata)
 
-            # Create the data model instance of the variable
-            var = \
-                Variable(
-                    # id=var_data['text'],
-                    name=var_data['text'],
-                    dkg_groundings=var_groundings,
-                    paper=paper
-                )
+        # Add it to the list
+        extractions.append(anchored_extraction)
 
-            # Create the statement value instance.
-            # Will be a little involved in the case of Arizona's output, so, we will hide the logic in a helper function
-            statement_value = build_statement_value(arguments)
+    attributes = [
+        Attribute(
+            type=AttributeType.anchored_extraction,
+            amr_element_id=None,
+            payload=e
+        ) for e in extractions
+    ]
 
-            # Put it together as a VariableStatement instance
-            var_statement = \
-                VariableStatement(
-                    id=event_id,
-                    variable=var,
-                    value=statement_value,
-                    provenance=ProvenanceInfo(
-                        method="SKEMA",
-                        description="SKEMA text reading pipeline v0.5"
-                    )
-                )
+    collection = AttributeCollection(attributes=attributes)
 
-            # Throw in some variable statement metadata, just for fun
-            one_metadata = \
-                VariableStatementMetadata(
-                    # Will include all the span of the extraction, including variable, statement value and context (an
-                    # arizona specific construct)
-                    type="text_span",
-                    value=e['text']
-                )
-            var_statement.metadata.append(one_metadata)
-
-            # Cosmos doc location where this event ocurred, if existent
-            cs_att = get_mention_location(e)
-            if cs_att:
-                cosmos_metadata = \
-                    VariableStatementMetadata(
-                        type="cosmos_location",
-                        value=','.join(
-                            [
-                                str(cs_att['pageNum'][0]),
-                                str(cs_att['blockIdx'][0]),
-                                str(e['characterStartOffset']),
-                                str(e['characterEndOffset'])
-                            ]
-                        )
-                    )
-
-                var_statement.metadata.append(cosmos_metadata)
-
-            # Throw in more metadata, this time for work: Will add scenario context as metadata elements
-            scenario_context_metadata = get_scenario_context(e)
-            var_statement.metadata.extend(scenario_context_metadata)
-
-            # Add it to the list
-            collection.append(var_statement)
-
-    return ExtractionsCollection(variable_statements=collection)
+    return collection
