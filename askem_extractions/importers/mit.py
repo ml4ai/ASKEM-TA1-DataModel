@@ -262,6 +262,9 @@ def merge_collections(a_collection: AttributeCollection, m_collection: Attribute
                     #         # md.type = entry_a.variable.name
                     #         vs.variable.metadata.append(md)
                     # if entry_a.variable.dkg_groundings is not empty
+                    if entry_a.descriptions:
+                        for d in entry_a.descriptions:
+                            vs.descriptions.append(d)
                     if entry_a.groundings:
                         # iterate through the list of dkg_annotations
                         for term in entry_a.groundings:

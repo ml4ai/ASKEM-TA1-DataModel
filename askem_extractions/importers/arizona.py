@@ -172,6 +172,8 @@ def build_anchored_extraction(event) -> (AnchoredExtraction, DocumentReference):
                        extraction_source=var_text_extraction,
                        provenance=event_provenance
                    )],
+                    descriptions=descriptions,
+                    value_specs=value_specs,
                    groundings=var_groundings),
                 document_reference)
 
