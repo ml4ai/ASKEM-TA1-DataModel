@@ -50,7 +50,7 @@ def get_document_reference(block) -> Optional[DocumentReference]:
                     )
 
 
-def build_anchored_extraction(event) -> AnchoredExtraction:
+def build_anchored_extraction(event) -> (AnchoredExtraction, DocumentReference):
     """ Helper function to extract the statement value """
 
     event_id = event['id']
@@ -61,10 +61,12 @@ def build_anchored_extraction(event) -> AnchoredExtraction:
         timestamp=str(datetime.utcnow())
     )
 
+    document_reference = None
+
     if 'variable' in arguments:
         # Get the unique extraction id for the current event
 
-        paper = get_document_reference(event)
+        document_reference = get_document_reference(event)
 
         # Create the variable instance for this extraction
         var_data = arguments['variable'][0]
@@ -86,7 +88,8 @@ def build_anchored_extraction(event) -> AnchoredExtraction:
                     page=0,
                     block=0,
                     char_start=var_data['characterStartOffset'],
-                    char_end=var_data['characterEndOffset']
+                    char_end=var_data['characterEndOffset'],
+                    document_reference=document_reference.id
                 )
 
         # Create the statement value instance.
@@ -106,7 +109,8 @@ def build_anchored_extraction(event) -> AnchoredExtraction:
                             page=val_cs_att['pageNum'][0],
                             block=val_cs_att['blockIdx'][0],
                             char_start=val['characterStartOffset'],
-                            char_end=val['characterEndOffset']
+                            char_end=val['characterEndOffset'],
+                            document_reference=document_reference.id
                         )
                 else:
                     val_text_extraction = \
@@ -114,7 +118,8 @@ def build_anchored_extraction(event) -> AnchoredExtraction:
                             page=0,
                             block=0,
                             char_start=val['characterStartOffset'],
-                            char_end=val['characterEndOffset']
+                            char_end=val['characterEndOffset'],
+                            document_reference=document_reference.id
                         )
 
                 val_groundings = [g for g in get_dkg_groundings(val) if g.score >= 0.75]
@@ -159,17 +164,16 @@ def build_anchored_extraction(event) -> AnchoredExtraction:
                     value_specs.append(vs)
 
         return \
-            AnchoredExtraction(
-                id=ID(id=event_id),
-                names=[Name(
-                    id=ID(id=var_data['id']),
-                    name=var_data['text'],
-                    extraction_source=var_text_extraction,
-                    document_reference=paper,
-                    provenance=event_provenance
-                )],
-                groundings=var_groundings
-            )
+            (AnchoredExtraction(
+                   id=ID(id=event_id),
+                   names=[Name(
+                       id=ID(id=var_data['id']),
+                       name=var_data['text'],
+                       extraction_source=var_text_extraction,
+                       provenance=event_provenance
+                   )],
+                   groundings=var_groundings),
+                document_reference)
 
 
 # def get_scenario_context(block) -> list[VariableStatementMetadata]:
@@ -219,9 +223,15 @@ def import_arizona(path: Path) -> AttributeCollection:
     events = [d for d in data if d["type"] != "TextBoundMention"]
 
     extractions = []
+    documents = []
+    seen_documents = set()
     # Make each event a variable statement type
     for e in events:
-        anchored_extraction = build_anchored_extraction(e)
+        anchored_extraction, document_reference = build_anchored_extraction(e)
+
+        if document_reference.id.id not in seen_documents:
+            seen_documents.add(document_reference.id.id)
+            documents.append(document_reference)
 
         # Throw in some variable statement metadata, just for fun
         # one_metadata = \
@@ -248,6 +258,13 @@ def import_arizona(path: Path) -> AttributeCollection:
         ) for e in extractions
     ]
 
-    collection = AttributeCollection(attributes=attributes)
+    doc_collection = \
+        Attribute(
+            type=AttributeType.document_collection,
+            amr_element_id=None,
+            payload=DocumentCollection(documents=documents)
+        )
+
+    collection = AttributeCollection(attributes=attributes + [doc_collection])
 
     return collection
