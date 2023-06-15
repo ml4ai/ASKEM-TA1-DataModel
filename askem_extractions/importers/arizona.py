@@ -279,7 +279,6 @@ def import_arizona(path: Path) -> AttributeCollection:
     attributes = [
         Attribute(
             type=AttributeType.anchored_extraction,
-            amr_element_id=None,
             payload=e
         ) for e in extractions
     ]
@@ -287,14 +286,12 @@ def import_arizona(path: Path) -> AttributeCollection:
     doc_collection = \
         Attribute(
             type=AttributeType.document_collection,
-            amr_element_id=None,
             payload=DocumentCollection(documents=documents)
         )
 
     contexts = [
         Attribute(
             type=AttributeType.scenario_context,
-            amr_element_id=None,
             payload=c
         ) for c in contexts
     ]

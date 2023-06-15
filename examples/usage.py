@@ -45,5 +45,5 @@ if __name__ == "__main__":
     # Merge both data model with the mapping file
     merged = merge_collections(a_collection, m_collection,
                                Path(__file__).parent / Path("mapping.txt"))
-    merged.save_json("ta1-bucky_extraction_v1.json")
+    merged.save_json("ta1-bucky_extraction_v1.json", exclude_unset=True) # set exlude_unset to ommit null fields
 
