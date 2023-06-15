@@ -51,11 +51,11 @@ class AttributeCollection(BaseModel):
             '$id': "#/definitions/AttributeCollection"
         }
 
-    def save_json(self, path: Union[Path, str]):
+    def save_json(self, path: Union[Path, str], **kwargs):
         """ Saves the collection to a json file """
         path = Path(path)
         with path.open('w') as f:
-            f.write(self.json(indent=2))
+            f.write(self.json(indent=2, **kwargs))
 
     @classmethod
     def from_json(cls, path: Union[Path, str]):
