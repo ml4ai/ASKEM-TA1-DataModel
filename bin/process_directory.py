@@ -4,7 +4,7 @@ import itertools as it
 
 from pathlib import Path
 
-from askem_extractions.data_model import ExtractionsCollection
+from askem_extractions.data_model import AttributeCollection
 from askem_extractions.importers import import_arizona, import_mit
 
 
@@ -56,12 +56,12 @@ if __name__ == "__main__":
                 print(f"Problem parsing Arizona extractions file {az_file}: {type(ex)}  {ex}")
         if mit_file:
             try:
-                normalized.append(import_extractions(Path(mit_file), import_arizona))
+                normalized.append(import_extractions(Path(mit_file), import_mit))
             except Exception as ex:
                 print(f"Problem parsing MIT extractions file {mit_file}: {type(ex)} {ex}")
 
         # Merge any collections imported above
-        collections = ExtractionsCollection(
-            variable_statements=list(it.chain.from_iterable(c.variable_statements for c in normalized)))
+        collections = AttributeCollection(
+            attributes=list(it.chain.from_iterable(c.attributes for c in normalized)))
         collections.save_json(str(output_file))
         print(f"Saved file {output_file}")
