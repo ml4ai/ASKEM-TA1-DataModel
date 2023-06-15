@@ -35,7 +35,7 @@ path_to_json = Path(__file__).parent / Path("arizona_output_example.json")
 collection = import_arizona(path_to_json)
 ```
 
-The `ExtractionsCollection` model is able to serialize the extractions to json:
+The `AttributeCollection` model is able to serialize the extractions to json:
 ```python
 # Save the collection of arizona extractions as the standard json format
 collection.save_json("temp.json")
@@ -44,7 +44,7 @@ collection.save_json("temp.json")
 And is able to _load from_ previously serialized json files too:
 ```python
 # Reloads the collection from the json file
-deserialized = ExtractionsCollection.from_json("temp.json")
+deserialized = AttributeCollection.from_json("temp.json")
 ```
 
 The model loaded from disk will be equivalent to the one imported from the performer's specific output format:
@@ -56,7 +56,7 @@ assert collection == deserialized, "Deserialization didn't work"
 ## Generate JSON Schema
 To generate the json schema, we can leverage pydantic to do it automatically using the  following code snippet:
 ```python
-print(ExtractionsCollection.schema_json(indent=2))
+print(AttributeCollection.schema_json(indent=2))
 ```
 ## Dockerization
 A docker container built using this project's docker file will normalize TA-1 participants' proprietary files and merge the product to a single output file.
