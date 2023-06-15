@@ -1,10 +1,12 @@
+![Docker Image Version (latest by date)](https://img.shields.io/docker/v/lumai//askem-text-reading-utilities?sort=date)
+
 # ASKEM Extractions Data Model
 
 This module contains the implementation of the TA1 extractions' data model for interoperability between within TA1 and with TA4.
 
 The _Entity-Relation_ diagram with the specification of the model is found [here](https://miro.com/app/board/uXjVMZvPN6o=/).
 
-## Instalation
+## Installation
 
 Clone this repository to your workstation, then install it in a virtual environment:
 ```shell
@@ -21,7 +23,7 @@ If you want to install this module directly, without having to clone the reposit
 pip install git+https://github.com/ml4ai/ASKEM-TA1-DataModel
 ```
 
-### Uninstallation
+### Uninstalling
 To remove the package from a virtual environment, use:
 ```shell
 pip uninstall askem-extractions
