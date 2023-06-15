@@ -1,4 +1,4 @@
-![Docker Image Version (latest by date)](https://img.shields.io/docker/v/lumai//askem-text-reading-utilities?sort=date)
+![Docker Image Version (latest by date)](https://img.shields.io/docker/v/lumai/askem-text-reading-utilities?sort=date)
 
 # ASKEM Extractions Data Model
 
