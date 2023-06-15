@@ -60,6 +60,8 @@ jobs:
       with:
         images: lumai/askem-text-reading-utilities
         tags: |
+          # latest
+          type=raw,value=latest
           # version
           type=semver,pattern={{version}}
           # other tags
