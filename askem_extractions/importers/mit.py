@@ -3,7 +3,9 @@ from datetime import datetime
 from pathlib import Path
 
 from askem_extractions.data_model import Dataset, DataColumnReference, AttributeCollection, Grounding, Provenance, \
-    DocumentReference, AnchoredExtraction, ID, Name, Description, Attribute, AttributeType
+    DocumentReference, AnchoredExtraction, ID, Name, Description, Attribute, AttributeType, TextExtraction, \
+    DocumentCollection
+from . import categorize_attributes
 
 
 def import_mit_and_merge(a_path: Path, m_path: Path, map_path: Path) -> AttributeCollection:
@@ -86,6 +88,9 @@ def import_mit(m_path: Path) -> AttributeCollection:
     with open(m_path, "r") as file_a:
         data_m = json.load(file_a)
 
+    documents = []
+    seen_documents = set()
+
     for entry_a in data_m:
         id = entry_a["id"]
         name = entry_a["name"]
@@ -162,6 +167,10 @@ def import_mit(m_path: Path) -> AttributeCollection:
             doi=doi,
         )
 
+        if doc_ref_id not in seen_documents:
+            documents.append(paper)
+            seen_documents.add(doc_ref_id)
+
         # variable = Variable(
         #     id=id,
         #     name=name,
@@ -179,6 +188,11 @@ def import_mit(m_path: Path) -> AttributeCollection:
             provenance=mit_provenance
         ) for d in text_annotations]
 
+        text_extraction = TextExtraction(
+            char_start=0,
+            char_end=0,
+            document_reference=paper.id
+        )
 
         anchored_extraction = AnchoredExtraction(
             id=ID(id=id),
@@ -186,23 +200,29 @@ def import_mit(m_path: Path) -> AttributeCollection:
                 id=ID(id=id),
                 name=name,
                 extraction_source=None,
-                document_reference=paper,
                 provenance=mit_provenance
             )],
             descriptions=descriptions,
             value_specs=None,
             groundings=dkg_groundings,
-            data_columns=columns
+            data_columns=columns,
+            text_extraction=text_extraction
         )
         extractions.append(anchored_extraction)
 
     attributes = [
-        Attribute(
-            type=AttributeType.anchored_extraction,
-            amr_element_id=None,
-            payload=e
-        ) for e in extractions
-    ]
+                     Attribute(
+                         type=AttributeType.anchored_extraction,
+                         amr_element_id=None,
+                         payload=e
+                     ) for e in extractions
+                 ] + [
+                     Attribute(
+                         type=AttributeType.document_collection,
+                         amr_element_id=None,
+                         payload=DocumentCollection(documents=documents)
+                     )
+                 ]
 
     return AttributeCollection(attributes=attributes)
 
@@ -220,24 +240,28 @@ def merge_collections(a_collection: AttributeCollection, m_collection: Attribute
         key, value = mapping.strip().split(": ")
         mapping_dict[key] = value.strip('"').strip(",")
 
-    az_anchored_extractions = [a.payload for a in a_collection.attributes]
+    az_anchored_extractions, az_docs, az_context = categorize_attributes(a_collection)
+    mit_anchored_extractions, mit_docs, _ = categorize_attributes(m_collection)
 
-    for vs in az_anchored_extractions:
+    az_docs = az_docs[0]
+    mit_docs = mit_docs[0]
+
+    for vs in (a.payload for a in az_anchored_extractions):
         entry_b_id = vs.id.id
         # print(entry_b_id)
         if entry_b_id in mapping_dict.values():
             # print("Found mapping")
             # Get the corresponding key (id from data_a) and find the entry in data_a
             entry_a_id = [k for k, v in mapping_dict.items() if v == entry_b_id][0]
-            mit_anchored_extractions = [a.payload for a in m_collection.attributes]
-            for entry_a in mit_anchored_extractions:
+
+            for entry_a in (a.payload for a in mit_anchored_extractions):
                 if entry_a.id.id == entry_a_id:
                     # TODO Figure out what to do with the metadata
-                    # if entry_a.variable.metadata:
-                    #     for md in entry_a.variable.metadata:
-                    #         # md.type = entry_a.variable.name
-                    #         vs.variable.metadata.append(md)
-                    # if entry_a.variable.dkg_groundings is not empty
+                    for name in entry_a.names:
+                        vs.names.append(name)
+                    if entry_a.descriptions:
+                        for d in entry_a.descriptions:
+                            vs.descriptions.append(d)
                     if entry_a.groundings:
                         # iterate through the list of dkg_annotations
                         for term in entry_a.groundings:
@@ -249,6 +273,8 @@ def merge_collections(a_collection: AttributeCollection, m_collection: Attribute
                             if not vs.data_columns:
                                 vs.data_columns = list()
                             vs.data_columns.append(term)
-                    # if entry_a["equation_annotations"] is empty
+                        # if entry_a["equation_annotations"] is empty
 
-    return AttributeCollection(attributes=a_collection.attributes)
+    merged_docs = Attribute(type=AttributeType.document_collection, payload=DocumentCollection(documents=az_docs.payload.documents + mit_docs.payload.documents))
+
+    return AttributeCollection(attributes=az_anchored_extractions + [merged_docs] + az_context)

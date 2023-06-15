@@ -15,4 +15,6 @@ from .units import *
 from .value import *
 from .value_spec import *
 from .anchored_extraction import *
+from .function_network_reference import *
+from .scenario_context import *
 from .attribute import *
