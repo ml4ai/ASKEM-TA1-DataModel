@@ -4,7 +4,7 @@ import itertools as it
 
 from pathlib import Path
 
-from askem_extractions.data_model import ExtractionsCollection
+from askem_extractions.data_model import AttributeCollection
 from askem_extractions.importers import import_arizona, import_mit
 
 
@@ -38,8 +38,8 @@ if __name__ == "__main__":
             print(f"Problem parsing MIT extractions file {args.mit_input_file}: {type(ex)} {ex}")
 
     # Merge any collections imported above
-    collections = ExtractionsCollection(
-        variable_statements=list(it.chain.from_iterable(c.variable_statements for c in normalized)))
+    collections = AttributeCollection(
+        attributes=list(it.chain.from_iterable(c.attributes for c in normalized)))
     # Compute the output file name
     # new_name = f"canonical_{path_to_json.stem}.json"
     # Save the collection of arizona extractions as the standard json format
