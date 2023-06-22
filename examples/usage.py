@@ -11,7 +11,7 @@ from askem_extractions.importers.mit import merge_collections
 
 if __name__ == "__main__":
     # Import Arizona extractions into our data model
-    path_to_json = Path(__file__).parent / Path("arizona_output_example.json")
+    path_to_json = Path(__file__).parent / "arizona_output_example.json"
     a_collection = import_arizona(path_to_json)
 
     # Save the collection of arizona extractions as the standard json format

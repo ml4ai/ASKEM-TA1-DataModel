@@ -1,7 +1,5 @@
 import json
-from pathlib import Path
-from typing import Optional
-import uuid
+import logging
 
 from ..data_model import *
 
@@ -157,11 +155,11 @@ def build_anchored_extraction(event) -> (AnchoredExtraction, DocumentReference):
                     value_specs.append(vs)
                 elif key == "unit":
                     vs = ValueSpec(
-                        id=ID(id=-val['id']),
+                        id=ID(id=val['id']),
                         value=Value(
                             source=value,
                             grounding=val_groundings,
-                            extraction_source=TextExtraction
+                            extraction_source=val_text_extraction
                         ),
                         units=None,
                         type=None,
@@ -249,32 +247,36 @@ def import_arizona(path: Path) -> AttributeCollection:
     seen_documents = set()
     # Make each event a variable statement type
     for e in events:
-        processed = build_anchored_extraction(e)
-        if processed:
-            anchored_extraction, document_reference = processed
+        try:
+            processed = build_anchored_extraction(e)
+            if processed:
+                anchored_extraction, document_reference = processed
 
-            if document_reference.id.id not in seen_documents:
-                seen_documents.add(document_reference.id.id)
-                documents.append(document_reference)
+                if document_reference.id.id not in seen_documents:
+                    seen_documents.add(document_reference.id.id)
+                    documents.append(document_reference)
 
-            # Throw in some variable statement metadata, just for fun
-            # one_metadata = \
-            #     VariableStatementMetadata(
-            #         # Will include all the span of the extraction, including variable, statement value and context (an
-            #         # arizona specific construct)
-            #         type="text_span",
-            #         value=e['text']
-            #     )
-            # var_statement.metadata.append(one_metadata)
+                # Throw in some variable statement metadata, just for fun
+                # one_metadata = \
+                #     VariableStatementMetadata(
+                #         # Will include all the span of the extraction, including variable, statement value and context (an
+                #         # arizona specific construct)
+                #         type="text_span",
+                #         value=e['text']
+                #     )
+                # var_statement.metadata.append(one_metadata)
 
-            # Will add scenario context as metadata elements
-            scenario_contexts = get_scenario_context(e)
-            for sc in scenario_contexts:
-                sc.extractions.append(anchored_extraction.id)
+                # Will add scenario context as metadata elements
+                scenario_contexts = get_scenario_context(e)
+                for sc in scenario_contexts:
+                    sc.extractions.append(anchored_extraction.id)
 
-            # Add it to the list
-            extractions.append(anchored_extraction)
-            contexts.extend(scenario_contexts)
+                # Add it to the list
+                extractions.append(anchored_extraction)
+                contexts.extend(scenario_contexts)
+        except Exception as ex:
+            print(f"import_arizona error: {ex}")
+
 
     attributes = [
         Attribute(
