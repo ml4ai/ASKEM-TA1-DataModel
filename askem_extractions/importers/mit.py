@@ -98,7 +98,7 @@ def import_mit(m_path: Path) -> AttributeCollection:
         dkg_groundings = []
         metadata = []
         # if entry_a["dkg_annotations"] is not empty
-        if entry_a["dkg_annotations"]:
+        if entry_a.get("dkg_annotations"):
             # iterate through the list of dkg_annotations
             for term in entry_a["dkg_annotations"]:
                 if len(term) < 2:
@@ -113,7 +113,7 @@ def import_mit(m_path: Path) -> AttributeCollection:
                 dkg_groundings.append(dkg)
         columns = []
         # if entry_a["data_annotations"] is empty
-        if entry_a["data_annotations"]:
+        if entry_a.get("data_annotations"):
             # iterate through the list of data_annotations
             for term in entry_a["data_annotations"]:
                 # print(term)
@@ -163,7 +163,7 @@ def import_mit(m_path: Path) -> AttributeCollection:
             doi = entry_a["doi"]
         paper = DocumentReference(
             id=ID(id=doc_ref_id),
-            source_file=entry_a["title"],
+            source_file=entry_a.get("title", "N/A"),
             doi=doi,
         )
 
