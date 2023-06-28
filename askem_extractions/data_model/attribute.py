@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 import pydantic
 from pydantic import BaseModel
@@ -44,7 +44,7 @@ class Attribute(BaseModel):
 
 class AttributeCollection(BaseModel):
     """ Represents a collection of attributes """
-    attributes: list[Attribute]
+    attributes: List[Attribute]
 
     class Config:
         schema_extra = {

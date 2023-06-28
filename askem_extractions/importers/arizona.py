@@ -4,7 +4,7 @@ import logging
 from ..data_model import *
 
 
-def get_dkg_groundings(block) -> list[Grounding]:
+def get_dkg_groundings(block) -> List[Grounding]:
     """
     Helper function to create DKGConcept instances from arizona extractions.
     This is specific to any input data format (i.e. Arizona, MIT, etc)
@@ -183,7 +183,7 @@ def build_anchored_extraction(event) -> (AnchoredExtraction, DocumentReference):
                 document_reference)
 
 
-def get_scenario_context(block) -> list[ScenarioContext]:
+def get_scenario_context(block) -> List[ScenarioContext]:
     """ Helper function to return the scenario context as metadata for the variable statement """
     ret = []
     attachments = block.get('attachments', [])
