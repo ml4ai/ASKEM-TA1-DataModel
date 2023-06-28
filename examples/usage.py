@@ -27,7 +27,7 @@ if __name__ == "__main__":
     print("Arizona Worked!!!")
 
     # Import MIT extractions into our data model
-    path_to_json = Path(__file__).parent / Path("mit_extraction.json")
+    path_to_json = Path(__file__).parent / Path("tmp.json")
     m_collection = import_mit(path_to_json)
 
     # Save the collection of arizona extractions as the standard json format

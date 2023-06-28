@@ -8,7 +8,7 @@ with Path("README.md").open() as f:
 
 setup(
     name="askem_extractions",
-    python_requires=">=3.9",
+    python_requires=">=3.8",
     packages=["askem_extractions.data_model", "askem_extractions.importers"],
     version="2.1.0",
     keywords=["askem", "data model", "extractions", "parameters", "equations"],

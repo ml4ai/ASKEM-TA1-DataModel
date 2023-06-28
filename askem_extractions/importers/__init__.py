@@ -18,6 +18,6 @@ def categorize_attributes(iterable: AttributeCollection):
 
 
 from .arizona import import_arizona
-from .mit import import_mit
+from .mit import import_mit, merge_collections
 
-__all__ = ["import_arizona", "import_mit", "categorize_attributes"]
+__all__ = ["import_arizona", "import_mit", "categorize_attributes", "merge_collections"]
