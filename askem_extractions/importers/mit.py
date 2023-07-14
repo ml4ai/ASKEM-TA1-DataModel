@@ -4,7 +4,7 @@ from pathlib import Path
 
 from askem_extractions.data_model import Dataset, DataColumnReference, AttributeCollection, Grounding, Provenance, \
     DocumentReference, AnchoredExtraction, ID, Name, Description, Attribute, AttributeType, TextExtraction, \
-    DocumentCollection
+    DocumentCollection, ValueSpec, Value
 from . import categorize_attributes
 
 
@@ -154,6 +154,18 @@ def import_mit(m_path: Path) -> AttributeCollection:
         #         value="MIT extractor V1.0",
         #     )
         #     metadata.append(mit_extracted)
+        value_specs = None
+        if entry_a.get('value'):
+            value_specs = []
+            value_specs.append(
+                ValueSpec(
+                id=ID(id=id + "-value"),
+                value=Value(source=entry_a["value"],grounding = None, extraction_source = None),
+                units=None,
+                type=None,
+                bounds=None,
+                provenance=mit_provenance)
+            )
         url = ""
         doi = ""
         doc_ref_id = 1
@@ -203,7 +215,7 @@ def import_mit(m_path: Path) -> AttributeCollection:
                 provenance=mit_provenance
             )],
             descriptions=descriptions,
-            value_specs=None,
+            value_specs=value_specs,
             groundings=dkg_groundings,
             data_columns=columns,
             text_extraction=text_extraction
@@ -273,7 +285,11 @@ def merge_collections(a_collection: AttributeCollection, m_collection: Attribute
                             if not vs.data_columns:
                                 vs.data_columns = list()
                             vs.data_columns.append(term)
-                        # if entry_a["equation_annotations"] is empty
+                    if entry_a.value_specs:
+                        for value in entry_a.value_specs:
+                            if not vs.value_specs:
+                                vs.value_specs = list()
+                            vs.value_specs.append(value)
 
     merged_docs = Attribute(type=AttributeType.document_collection, payload=DocumentCollection(documents=az_docs.payload.documents + mit_docs.payload.documents))
 
