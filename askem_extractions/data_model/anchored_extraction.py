@@ -25,3 +25,6 @@ class AnchoredExtraction(BaseModel):
         schema_extra = {
             '$id': "#/definitions/AnchoredExtraction"
         }
+
+    def __hash__(self):
+        return hash(self.id.id)

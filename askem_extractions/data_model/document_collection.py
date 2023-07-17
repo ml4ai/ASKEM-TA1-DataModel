@@ -12,3 +12,6 @@ class DocumentCollection(BaseModel):
         schema_extra = {
             '$id': "#/definitions/DocumentCollection"
         }
+
+    def __hash__(self):
+        return hash(tuple(self.documents))

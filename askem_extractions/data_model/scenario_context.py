@@ -28,3 +28,6 @@ class ScenarioContext(BaseModel):
     extractions: List[ID] = [] # just a list of AnchoredExtraction IDs, so don't need to copy whole AEs
     location: Optional[LocationContext]
     time: Optional[TemporalContext]
+
+    def __hash__(self):
+        return hash(self.id.id)

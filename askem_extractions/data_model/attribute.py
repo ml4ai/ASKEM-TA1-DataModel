@@ -41,6 +41,9 @@ class Attribute(BaseModel):
             '$id': "#/definitions/Attribute"
         }
 
+    def __hash__(self):
+        return hash((type(self),) + tuple(self.__dict__.values()))
+
 
 class AttributeCollection(BaseModel):
     """ Represents a collection of attributes """
@@ -61,3 +64,6 @@ class AttributeCollection(BaseModel):
     def from_json(cls, path: Union[Path, str]):
         """ Restores a collection from a json file """
         return pydantic.parse_file_as(path=str(path), type_=cls)
+
+    def __hash__(self):
+        return hash(tuple(self.attributes))

@@ -16,3 +16,6 @@ class DocumentReference(BaseModel):
             '$id': "#/definitions/DocumentReference"
         }
 
+    def __hash__(self):
+        return hash(self.id.id)
+
