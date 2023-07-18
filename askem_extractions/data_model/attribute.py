@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Dict
 
 import pydantic
 from pydantic import BaseModel, parse_obj_as
@@ -62,11 +62,15 @@ class AttributeCollection(BaseModel):
             f.write(self.model_dump_json(indent=2, **kwargs))
 
     @classmethod
-    def from_json(cls, path: Union[Path, str]):
+    def from_json(cls, path: Union[Path, str, Dict]):
         """ Restores a collection from a json file """
-        path = Path(path)
-        with path.open() as f:
-            data = json.load(f)
+
+        if isinstance(path, (str, Path)):
+            path = Path(path)
+            with path.open() as f:
+                data = json.load(f)
+        else:
+            data = path
 
         attributes = list()
         for att in data["attributes"]:
