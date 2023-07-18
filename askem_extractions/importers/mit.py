@@ -119,7 +119,7 @@ def import_mit(m_path: Path) -> AttributeCollection:
                 # print(term)
                 dataset = Dataset(
                     name=term[0][1],
-                    id=ID(id=term[0][0]),
+                    id=ID(id=str(term[0][0])),
                     metadata=term[1],
                 )
                 col = DataColumnReference(
@@ -174,7 +174,7 @@ def import_mit(m_path: Path) -> AttributeCollection:
         if "doi" in entry_a.keys():
             doi = entry_a["doi"]
         paper = DocumentReference(
-            id=ID(id=doc_ref_id),
+            id=ID(id=str(doc_ref_id)),
             source_file=entry_a.get("title", "N/A"),
             doi=doi,
         )

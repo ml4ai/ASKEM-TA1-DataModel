@@ -9,7 +9,7 @@ class Dataset(BaseModel):
     """ Represents a dataset """
     id: ID
     name: str
-    metadata: Optional[str]  # Any additional metadata goes as a serialized string here
+    metadata: Optional[str]  = None # Any additional metadata goes as a serialized string here
 
     class Config:
         schema_extra = {

@@ -11,12 +11,12 @@ class Equation(BaseModel):
     """ The following is generalized to support extraction of an equation from a document or other medium """
 
     id: ID
-    source_text:       Optional[str]                # Raw sequence of characters
-    latex:             Optional[str]                # LaTeX representation
-    p_mathml:          Optional[str]                # Presentation MathML
-    c_mathml:          Optional[str]                # Content MathML
-    source_image:      Optional[str]                # File path to image
-    extraction_source: Optional[ImageExtraction]
+    source_text:       Optional[str]  = None               # Raw sequence of characters
+    latex:             Optional[str]  = None               # LaTeX representation
+    p_mathml:          Optional[str]  = None               # Presentation MathML
+    c_mathml:          Optional[str] = None                # Content MathML
+    source_image:      Optional[str] = None                # File path to image
+    extraction_source: Optional[ImageExtraction] = None
     provenance:        Provenance
 
     class Config:
