@@ -16,10 +16,10 @@ class AnchoredExtraction(BaseModel):
 
     id: ID
     names: List[Name]
-    descriptions: Optional[List[Description]]
-    value_specs: Optional[List[ValueSpec]]
-    groundings: Optional[List[Grounding]]
-    data_columns: Optional[List[DataColumnReference]]
+    descriptions: Optional[List[Description]] = None
+    value_specs: Optional[List[ValueSpec]] = None
+    groundings: Optional[List[Grounding]] = None
+    data_columns: Optional[List[DataColumnReference]] = None
 
     class Config:
         schema_extra = {

@@ -58,7 +58,7 @@ def get_document_reference(block) -> Optional[DocumentReference]:
 def build_anchored_extraction(event) -> (AnchoredExtraction, DocumentReference):
     """ Helper function to extract the statement value """
 
-    event_id = event['id']
+    event_id = str(event['id'])
     arguments = event['arguments']
 
     event_provenance = Provenance(
@@ -170,9 +170,9 @@ def build_anchored_extraction(event) -> (AnchoredExtraction, DocumentReference):
 
         return \
             (AnchoredExtraction(
-                   id=ID(id=event_id),
+                   id=ID(id=str(event_id)),
                    names=[Name(
-                       id=ID(id=var_data['id']),
+                       id=ID(id=str(var_data['id'])),
                        name=var_data['text'],
                        extraction_source=var_text_extraction,
                        provenance=event_provenance
@@ -193,7 +193,7 @@ def get_scenario_context(block) -> List[ScenarioContext]:
                 for location in att['scenarioLocation']:
                     ret.append(
                         ScenarioContext(
-                            id=ID(id=hash("location-"+location)),
+                            id=ID(id=str(hash("location-"+location))),
                             location = LocationContext(
                                 location=location,
                                 provenance=Provenance(
@@ -208,7 +208,7 @@ def get_scenario_context(block) -> List[ScenarioContext]:
                 for time in att['scenarioTime']:
                     ret.append(
                         ScenarioContext(
-                            id = ID(id=hash("temporal-time")),
+                            id = ID(id=str(hash("temporal-time"))),
                             time=TemporalContext(
                                 datetime=time,
                                 provenance=Provenance(

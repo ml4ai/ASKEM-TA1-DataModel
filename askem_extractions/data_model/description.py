@@ -11,8 +11,8 @@ class Description(BaseModel):
     """ An extraction of a description string to be anchored to name(s) """
     id: ID
     source: str         # TODO clarify the name and purpose of this field
-    grounding: Optional[List[Grounding]]  # Grounding for the type of the value
-    extraction_source: Optional[TextExtraction]
+    grounding: Optional[List[Grounding]]  = None # Grounding for the type of the value
+    extraction_source: Optional[TextExtraction] = None
     provenance: Provenance
 
     class Config:

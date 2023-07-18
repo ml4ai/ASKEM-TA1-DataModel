@@ -9,25 +9,25 @@ class LocationContext(BaseModel):
 
     location: str
     provenance: Provenance
-    grounding: Optional[Grounding]
-    extraction_source: Optional[TextExtraction]
+    grounding: Optional[Grounding]  = None
+    extraction_source: Optional[TextExtraction]  = None
 
 
 class TemporalContext(BaseModel):
 
-    datetime: Optional[str] # If it is a single time point, it will go here
-    start_datetime: Optional[str] # If it is an interval, this will hold the starting point
-    end_datetime: Optional[str] # If it is an interval, this will hold the starting point
+    datetime: Optional[str]  = None# If it is a single time point, it will go here
+    start_datetime: Optional[str]  = None# If it is an interval, this will hold the starting point
+    end_datetime: Optional[str]  = None# If it is an interval, this will hold the starting point
     provenance: Provenance
-    grounding: Optional[Grounding]
+    grounding: Optional[Grounding] = None
 
 
 
 class ScenarioContext(BaseModel):
     id: ID
     extractions: List[ID] = [] # just a list of AnchoredExtraction IDs, so don't need to copy whole AEs
-    location: Optional[LocationContext]
-    time: Optional[TemporalContext]
+    location: Optional[LocationContext]  = None
+    time: Optional[TemporalContext]  = None
 
     def __hash__(self):
         return hash(self.id.id)

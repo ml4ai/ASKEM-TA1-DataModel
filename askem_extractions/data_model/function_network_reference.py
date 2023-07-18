@@ -10,7 +10,7 @@ class FNReference(BaseModel):
         back to source FN structure(s) (and source code).
     """
 
-    paths: List[str]  # Each string represent a FN Path
+    paths: List[str]  = None # Each string represent a FN Path
     source_file: str  # File path to GrometFNModuleCollection JSON file
 
     class Config:

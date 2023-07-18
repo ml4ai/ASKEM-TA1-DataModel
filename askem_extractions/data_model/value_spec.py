@@ -16,10 +16,10 @@ class ValueSpec(BaseModel):
     """
 
     id: ID  # A unique id for this ValueSpec
-    value: Optional[Value]
-    units: Optional[Units]
+    value: Optional[Value]  = None
+    units: Optional[Units] = None
     type: Optional[str]  # String representing the (data) type of the value.
-    bounds: Optional[List[Tuple[Bound, Bound]]]  # Represents a list (set) of ordered pairs representing the
+    bounds: Optional[List[Tuple[Bound, Bound]]] = None  # Represents a list (set) of ordered pairs representing the
     # left/lower and right/upper bounds of an interval on an
     # ordered value domain. When there is no value, the assumption is that any value in the domain is acceptable;
     # when a domain has Tuple(s), then the domain is restricted to values within the specified intervals.

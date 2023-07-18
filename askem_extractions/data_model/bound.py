@@ -12,7 +12,7 @@ class BoundType(str, Enum):
 
 class Bound(BaseModel):
     type: BoundType
-    value: Optional[str]  # string representing the bound value
+    value: Optional[str] = None # string representing the bound value
     # if type is "Unbounded", then value is not specified
 
     class Config:

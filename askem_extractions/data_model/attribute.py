@@ -1,8 +1,9 @@
+import json
 from pathlib import Path
 from typing import Optional, Union, List
 
 import pydantic
-from pydantic import BaseModel
+from pydantic import BaseModel, parse_obj_as
 from enum import Enum
 
 from . import Equation
@@ -27,7 +28,7 @@ class Attribute(BaseModel):
     """
 
     type: AttributeType
-    amr_element_id: Optional[str]  # When present, this means the attribute is associated with an AMR element,
+    amr_element_id: Optional[str] = None  # When present, this means the attribute is associated with an AMR element,
     # and the str represents the AMR element id
     payload: Union[AnchoredExtraction,
     DocumentCollection,
@@ -58,12 +59,41 @@ class AttributeCollection(BaseModel):
         """ Saves the collection to a json file """
         path = Path(path)
         with path.open('w') as f:
-            f.write(self.json(indent=2, **kwargs))
+            f.write(self.model_dump_json(indent=2, **kwargs))
 
     @classmethod
     def from_json(cls, path: Union[Path, str]):
         """ Restores a collection from a json file """
-        return pydantic.parse_file_as(path=str(path), type_=cls)
+        path = Path(path)
+        with path.open() as f:
+            data = json.load(f)
+
+        attributes = list()
+        for att in data["attributes"]:
+            type_ = att['type']
+
+            payload = None
+
+            if type_ == AttributeType.anchored_extraction:
+                payload = AnchoredExtraction(**att['payload'])
+            elif type_ == AttributeType.document_collection:
+                payload = DocumentCollection(**att['payload'])
+            elif type_ == AttributeType.scenario_context:
+                payload = ScenarioContext(**att['payload'])
+            elif type_ == AttributeType.equation:
+                payload = Equation(**att['payload'])
+            elif type_ == AttributeType.fn_reference:
+                payload = FNReference(**att['payload'])
+
+            if payload is not None:
+                attribute = Attribute(
+                    type =type_,
+                    amr_element_id = att['amr_element_id'],
+                    payload = payload
+                )
+                attributes.append(attribute)
+        return AttributeCollection(attributes=attributes)
+
 
     def __hash__(self):
         return hash(tuple(self.attributes))

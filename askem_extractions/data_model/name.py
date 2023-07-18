@@ -11,7 +11,7 @@ class Name(BaseModel):
     """ A "named" concept """
     id: ID  # The unique id for this name
     name: str
-    extraction_source: Optional[TextExtraction]
+    extraction_source: Optional[TextExtraction]  = None
     provenance: Provenance
 
     class Config:
