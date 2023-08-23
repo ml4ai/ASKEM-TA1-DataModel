@@ -78,14 +78,15 @@ def build_anchored_extraction(event) -> (AnchoredExtraction, DocumentReference):
         var_groundings = [g for g in get_dkg_groundings(var_data) if g.score >= 0.75]  # Fetch the DKG groundings
 
         # Cosmos doc location where this event occurred, if existent
-        var_cs_att = get_mention_location(var_data)
+        var_cs_att = get_mention_location(event)
         if var_cs_att:
             var_text_extraction = \
                 TextExtraction(
                     page=var_cs_att['pageNum'][0],
                     block=var_cs_att['blockIdx'][0],
                     char_start=var_data['characterStartOffset'],
-                    char_end=var_data['characterEndOffset']
+                    char_end=var_data['characterEndOffset'],
+                    document_reference = document_reference.id
                 )
         else:
             var_text_extraction = \
@@ -107,7 +108,7 @@ def build_anchored_extraction(event) -> (AnchoredExtraction, DocumentReference):
                 val = val[0]
 
                 # Cosmos doc location where this event occurred, if existent
-                val_cs_att = get_mention_location(val)
+                val_cs_att = get_mention_location(event)
                 if val_cs_att:
                     val_text_extraction = \
                         TextExtraction(
