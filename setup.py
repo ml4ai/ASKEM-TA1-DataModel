@@ -10,7 +10,7 @@ setup(
     name="askem_extractions",
     python_requires=">=3.8",
     packages=["askem_extractions.data_model", "askem_extractions.importers"],
-    version="2.1.0",
+    version="2.2.0",
     keywords=["askem", "data model", "extractions", "parameters", "equations"],
     description="ASKEM extractions data model library",
     long_description=readme,

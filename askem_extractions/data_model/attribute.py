@@ -7,7 +7,7 @@ from pydantic import BaseModel, parse_obj_as
 from enum import Enum
 
 from . import Equation
-from . import AnchoredExtraction
+from . import AnchoredEntity
 from . import DocumentCollection
 from . import FNReference
 from . import ScenarioContext
@@ -30,7 +30,7 @@ class Attribute(BaseModel):
     type: AttributeType
     amr_element_id: Optional[str] = None  # When present, this means the attribute is associated with an AMR element,
     # and the str represents the AMR element id
-    payload: Union[AnchoredExtraction,
+    payload: Union[AnchoredEntity,
     DocumentCollection,
     Equation,
     FNReference,
@@ -79,7 +79,7 @@ class AttributeCollection(BaseModel):
             payload = None
 
             if type_ == AttributeType.anchored_extraction:
-                payload = AnchoredExtraction(**att['payload'])
+                payload = AnchoredEntity(**att['payload'])
             elif type_ == AttributeType.document_collection:
                 payload = DocumentCollection(**att['payload'])
             elif type_ == AttributeType.scenario_context:

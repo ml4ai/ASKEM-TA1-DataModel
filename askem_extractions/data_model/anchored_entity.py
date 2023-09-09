@@ -3,21 +3,21 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from askem_extractions.data_model import ID, DataColumnReference
-from askem_extractions.data_model.description import Description
+from askem_extractions.data_model.text_description import TextDescription
 from askem_extractions.data_model.grounding import Grounding
-from askem_extractions.data_model.name import Name
-from askem_extractions.data_model.value_spec import ValueSpec
+from askem_extractions.data_model.mention import Mention
+from askem_extractions.data_model.value_description import ValueDescription
 
 
-class AnchoredExtraction(BaseModel):
+class AnchoredEntity(BaseModel):
     """ Supports associations of various types of reading extractions associated with a "named" concept.
          There could be more than one name for the same element.
     """
 
     id: ID
-    names: List[Name]
-    descriptions: Optional[List[Description]] = None
-    value_specs: Optional[List[ValueSpec]] = None
+    mentions: List[Mention]
+    text_description: Optional[List[TextDescription]] = None
+    value_descriptions: Optional[List[ValueDescription]] = None
     groundings: Optional[List[Grounding]] = None
     data_columns: Optional[List[DataColumnReference]] = None
 

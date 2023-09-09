@@ -7,7 +7,7 @@ from askem_extractions.data_model.text_extraction import TextExtraction
 
 
 class Value(BaseModel):
-    source: str  # the text span containing a value
+    amount: str  # the text span containing a value
     grounding: Optional[List[Grounding]]  = None # Grounding for the type of the value
     extraction_source: Optional[TextExtraction]  = None
 
