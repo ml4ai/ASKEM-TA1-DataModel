@@ -7,7 +7,7 @@ from askem_extractions.data_model.provenance import Provenance
 from askem_extractions.data_model.text_extraction import TextExtraction
 
 
-class Name(BaseModel):
+class Mention(BaseModel):
     """ A "named" concept """
     id: ID  # The unique id for this name
     name: str

@@ -53,7 +53,7 @@ def get_document_reference(block) -> Optional[DocumentReference]:
 
 def build_anchored_extraction(
     event, passage: Optional[str] = None
-) -> (AnchoredExtraction, DocumentReference):
+) -> (AnchoredEntity, DocumentReference):
     """Helper function to extract the statement value"""
 
     event_id = str(event["id"])
@@ -129,19 +129,19 @@ def build_anchored_extraction(
 
                 value = val["text"]
                 if key == "description":
-                    d = Description(
+                    d = TextDescription(
                         id=ID(id=val["id"]),
-                        source=value,
+                        description=value,
                         grounding=val_groundings,
                         extraction_source=val_text_extraction,
                         provenance=event_provenance,
                     )
                     descriptions.append(d)
                 elif key == "value":
-                    vs = ValueSpec(
+                    vs = ValueDescription(
                         id=ID(id=val["id"]),
                         value=Value(
-                            source=value,
+                            amount=value,
                             grounding=val_groundings,
                             extraction_source=val_text_extraction,
                         ),
@@ -152,10 +152,10 @@ def build_anchored_extraction(
                     )
                     value_specs.append(vs)
                 elif key == "unit":
-                    vs = ValueSpec(
+                    vs = ValueDescription(
                         id=ID(id=val["id"]),
                         value=Value(
-                            source=value,
+                            amount=value,
                             grounding=val_groundings,
                             extraction_source=val_text_extraction,
                         ),
@@ -167,10 +167,10 @@ def build_anchored_extraction(
                     value_specs.append(vs)
 
         return (
-            AnchoredExtraction(
+            AnchoredEntity(
                 id=ID(id=str(event_id)),
-                names=[
-                    Name(
+                mentions=[
+                    Mention(
                         id=ID(id=str(var_data["id"])),
                         name=var_data["text"],
                         extraction_source=var_text_extraction,

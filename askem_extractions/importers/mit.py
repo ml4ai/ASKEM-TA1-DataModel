@@ -3,8 +3,8 @@ from datetime import datetime
 from pathlib import Path
 
 from askem_extractions.data_model import Dataset, DataColumnReference, AttributeCollection, Grounding, Provenance, \
-    DocumentReference, AnchoredExtraction, ID, Name, Description, Attribute, AttributeType, TextExtraction, \
-    DocumentCollection, ValueSpec, Value
+    DocumentReference, AnchoredEntity, ID, Mention, TextDescription, Attribute, AttributeType, TextExtraction, \
+    DocumentCollection, ValueDescription, Value
 from . import categorize_attributes
 
 
@@ -192,9 +192,9 @@ def import_mit(m_path: Path) -> AttributeCollection:
         #     paper=paper,
         # )
 
-        descriptions = [Description(
+        descriptions = [TextDescription(
             id=ID(id=id),
-            source=d,
+            description=d,
             grounding=None,
             extraction_source=None,
             provenance=mit_provenance
@@ -206,9 +206,9 @@ def import_mit(m_path: Path) -> AttributeCollection:
             document_reference=paper.id
         )
 
-        anchored_extraction = AnchoredExtraction(
+        anchored_extraction = AnchoredEntity(
             id=ID(id=id),
-            names=[Name(
+            mentions=[Mention(
                 id=ID(id=id),
                 name=name,
                 extraction_source=None,
@@ -269,11 +269,11 @@ def merge_collections(a_collection: AttributeCollection, m_collection: Attribute
             for entry_a in (a.payload for a in mit_anchored_extractions):
                 if entry_a.id.id == entry_a_id:
                     # TODO Figure out what to do with the metadata
-                    for name in entry_a.names:
-                        vs.names.append(name)
-                    if entry_a.descriptions:
-                        for d in entry_a.descriptions:
-                            vs.descriptions.append(d)
+                    for name in entry_a.mentions:
+                        vs.mentions.append(name)
+                    if entry_a.text_description:
+                        for d in entry_a.text_description:
+                            vs.text_description.append(d)
                     if entry_a.groundings:
                         # iterate through the list of dkg_annotations
                         for term in entry_a.groundings:
@@ -285,11 +285,11 @@ def merge_collections(a_collection: AttributeCollection, m_collection: Attribute
                             if not vs.data_columns:
                                 vs.data_columns = list()
                             vs.data_columns.append(term)
-                    if entry_a.value_specs:
-                        for value in entry_a.value_specs:
-                            if not vs.value_specs:
-                                vs.value_specs = list()
-                            vs.value_specs.append(value)
+                    if entry_a.value_descriptions:
+                        for value in entry_a.value_descriptions:
+                            if not vs.value_descriptions:
+                                vs.value_descriptions = list()
+                            vs.value_descriptions.append(value)
 
     merged_docs = Attribute(type=AttributeType.document_collection, payload=DocumentCollection(documents=az_docs.payload.documents + mit_docs.payload.documents))
 

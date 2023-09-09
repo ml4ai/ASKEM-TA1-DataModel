@@ -9,7 +9,7 @@ from askem_extractions.data_model.units import Units
 from askem_extractions.data_model.value import Value
 
 
-class ValueSpec(BaseModel):
+class ValueDescription(BaseModel):
     """ Value and unit extractions may come as a pair, and since there may be more than one such pair,
         we provide a ValueSpec as a general structure that itself can contain either a Value, a Unit,
         or a paired Value and Unit
