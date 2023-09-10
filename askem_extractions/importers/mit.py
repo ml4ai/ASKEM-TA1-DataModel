@@ -224,7 +224,7 @@ def import_mit(m_path: Path) -> AttributeCollection:
 
     attributes = [
                      Attribute(
-                         type=AttributeType.anchored_extraction,
+                         type=AttributeType.anchored_entity,
                          amr_element_id=None,
                          payload=e
                      ) for e in extractions
@@ -271,9 +271,9 @@ def merge_collections(a_collection: AttributeCollection, m_collection: Attribute
                     # TODO Figure out what to do with the metadata
                     for name in entry_a.mentions:
                         vs.mentions.append(name)
-                    if entry_a.text_description:
-                        for d in entry_a.text_description:
-                            vs.text_description.append(d)
+                    if entry_a.text_descriptions:
+                        for d in entry_a.text_descriptions:
+                            vs.text_descriptions.append(d)
                     if entry_a.groundings:
                         # iterate through the list of dkg_annotations
                         for term in entry_a.groundings:

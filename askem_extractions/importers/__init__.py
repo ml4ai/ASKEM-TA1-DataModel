@@ -7,7 +7,7 @@ from ..data_model import Attribute, AttributeType, AttributeCollection
 def categorize_attributes(iterable: AttributeCollection):
     extractions, documents, context = [], [], []
     for i in iterable.attributes:
-        if i.type == AttributeType.anchored_extraction:
+        if i.type == AttributeType.anchored_entity:
             extractions.append(i)
         elif i.type == AttributeType.document_collection:
             documents.append(i)

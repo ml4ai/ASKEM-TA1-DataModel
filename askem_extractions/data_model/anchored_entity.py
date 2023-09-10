@@ -16,7 +16,7 @@ class AnchoredEntity(BaseModel):
 
     id: ID
     mentions: List[Mention]
-    text_description: Optional[List[TextDescription]] = None
+    text_descriptions: Optional[List[TextDescription]] = None
     value_descriptions: Optional[List[ValueDescription]] = None
     groundings: Optional[List[Grounding]] = None
     data_columns: Optional[List[DataColumnReference]] = None

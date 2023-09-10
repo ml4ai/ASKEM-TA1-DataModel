@@ -14,7 +14,7 @@ from . import ScenarioContext
 
 
 class AttributeType(str, Enum):
-    anchored_extraction = "anchored_extraction"
+    anchored_entity = "anchored_entity"
     document_collection = "document_collection"
     equation = "equation"
     fn_reference = "fn_reference"
@@ -78,7 +78,7 @@ class AttributeCollection(BaseModel):
 
             payload = None
 
-            if type_ == AttributeType.anchored_extraction:
+            if type_ == AttributeType.anchored_entity:
                 payload = AnchoredEntity(**att['payload'])
             elif type_ == AttributeType.document_collection:
                 payload = DocumentCollection(**att['payload'])

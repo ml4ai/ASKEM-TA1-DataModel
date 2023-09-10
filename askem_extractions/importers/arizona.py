@@ -51,7 +51,7 @@ def get_document_reference(block) -> Optional[DocumentReference]:
     return DocumentReference(id=ID(id="N/A"), source_file="N/A", doi="")
 
 
-def build_anchored_extraction(
+def build_anchored_entity(
     event, passage: Optional[str] = None
 ) -> (AnchoredEntity, DocumentReference):
     """Helper function to extract the statement value"""
@@ -177,8 +177,8 @@ def build_anchored_extraction(
                         provenance=event_provenance,
                     )
                 ],
-                descriptions=descriptions,
-                value_specs=value_specs,
+                text_descriptions=descriptions,
+                value_descriptions=value_specs,
                 groundings=var_groundings,
             ),
             document_reference,
@@ -267,7 +267,7 @@ def import_arizona(path: Path) -> AttributeCollection:
         try:
             # Fetch the surrounding passage
             passage = fetch_surrounding_passage(e, docs)
-            processed = build_anchored_extraction(e, passage)
+            processed = build_anchored_entity(e, passage)
             if processed:
                 anchored_extraction, document_reference = processed
 
@@ -297,7 +297,7 @@ def import_arizona(path: Path) -> AttributeCollection:
             print(f"import_arizona error: {ex}")
 
     attributes = [
-        Attribute(type=AttributeType.anchored_extraction, payload=e)
+        Attribute(type=AttributeType.anchored_entity, payload=e)
         for e in extractions
     ]
 
