@@ -26,7 +26,7 @@ setup(
         os.path.join("examples", "usage.py")
     ],
 
-    install_requires=["pydantic"],
+    install_requires=["pydantic>=2.0.3 "],
     classifiers=[
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering",
