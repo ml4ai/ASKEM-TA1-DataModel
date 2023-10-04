@@ -214,11 +214,10 @@ def import_mit(m_path: Path) -> AttributeCollection:
                 extraction_source=None,
                 provenance=mit_provenance
             )],
-            descriptions=descriptions,
-            value_specs=value_specs,
+            text_descriptions=descriptions,
+            value_descriptions=value_specs,
             groundings=dkg_groundings,
-            data_columns=columns,
-            text_extraction=text_extraction
+            data_columns=columns
         )
         extractions.append(anchored_extraction)
 
