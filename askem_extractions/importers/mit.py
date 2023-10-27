@@ -158,9 +158,9 @@ def import_mit(m_path: Path) -> AttributeCollection:
         if entry_a.get('value'):
             value_specs = []
             value_specs.append(
-                ValueSpec(
+                ValueDescription(
                 id=ID(id=id + "-value"),
-                value=Value(source=entry_a["value"],grounding = None, extraction_source = None),
+                value=Value(amount=entry_a["value"],grounding = None, extraction_source = None),
                 units=None,
                 type=None,
                 bounds=None,
