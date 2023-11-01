@@ -92,7 +92,7 @@ class AttributeCollection(BaseModel):
             if payload is not None:
                 attribute = Attribute(
                     type =type_,
-                    amr_element_id = att['amr_element_id'],
+                    amr_element_id = att.get('amr_element_id'),
                     payload = payload
                 )
                 attributes.append(attribute)
