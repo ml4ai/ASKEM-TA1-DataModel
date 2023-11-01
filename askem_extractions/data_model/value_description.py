@@ -16,9 +16,9 @@ class ValueDescription(BaseModel):
     """
 
     id: ID  # A unique id for this ValueSpec
-    value: Optional[Value]  = None
+    value: Optional[Value] = None
     units: Optional[Units] = None
-    type: Optional[str]  # String representing the (data) type of the value.
+    type: Optional[str] = None  # String representing the (data) type of the value.
     bounds: Optional[List[Tuple[Bound, Bound]]] = None  # Represents a list (set) of ordered pairs representing the
     # left/lower and right/upper bounds of an interval on an
     # ordered value domain. When there is no value, the assumption is that any value in the domain is acceptable;
